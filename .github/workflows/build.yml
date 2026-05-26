@@ -21,7 +21,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            args: --target x86_64-apple-darwin
+          - platform: ubuntu-22.04
+            target: ''
+            args: ''
+          - platform: windows-latest
+            target: ''
+            args: ''
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -36,6 +48,8 @@ jobs:
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -53,7 +67,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
+          args: ${{ matrix.args }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
           releaseName: 'AppBox v__VERSION__'
           releaseBody: 'See the assets to download and install this version.'
           releaseDraft: true
