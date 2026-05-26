@@ -4,53 +4,24 @@ on:
   push:
     tags:
       - 'v*'
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  create-release:
-    runs-on: ubuntu-22.04
-    outputs:
-      release_id: ${{ steps.create-release.outputs.result }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create draft release
-        id: create-release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data } = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: context.ref.replace('refs/tags/', ''),
-              name: `AppBox ${context.ref.replace('refs/tags/', '')}`,
-              body: 'See the assets to download this version and install.',
-              draft: true,
-              prerelease: false
-            })
-            return data.id
-
-  build-tauri:
-    needs: create-release
+  publish-tauri:
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin'
-            name: 'macOS (Apple Silicon)'
           - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
-            name: 'macOS (Intel)'
           - platform: 'ubuntu-22.04'
             args: ''
-            name: 'Linux (x86_64)'
           - platform: 'windows-latest'
             args: ''
-            name: 'Windows (x86_64)'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -62,7 +33,7 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Setup Rust toolchain
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
@@ -71,59 +42,24 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
-          key: ${{ matrix.platform }}-${{ matrix.args }}
 
-      - name: Install Linux dependencies
+      - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libgtk-3-dev \
-            libssl-dev \
-            build-essential \
-            curl \
-            wget \
-            file
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Install frontend dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
-      - name: Build & upload Tauri app
+      - name: Build and publish Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # 如果需要 macOS 签名/公证，取消注释并在仓库 secrets 里配置
-          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          # APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          # APPLE_ID: ${{ secrets.APPLE_ID }}
-          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # 如果需要 Windows 签名
-          # TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          # TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          releaseId: ${{ needs.create-release.outputs.release_id }}
+          tagName: ${{ github.ref_name }}
+          releaseName: 'AppBox ${{ github.ref_name }}'
+          releaseBody: '请在下方下载对应系统的安装包。'
+          releaseDraft: true
+          prerelease: false
           args: ${{ matrix.args }}
-
-  publish-release:
-    needs: [create-release, build-tauri]
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Publish release
-        uses: actions/github-script@v7
-        env:
-          RELEASE_ID: ${{ needs.create-release.outputs.release_id }}
-        with:
-          script: |
-            await github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: process.env.RELEASE_ID,
-              draft: false,
-              prerelease: false
-            })
