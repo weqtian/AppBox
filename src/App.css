@@ -127,4 +127,7 @@
   html {
     @apply font-sans;
     }
+  html[dir="rtl"] {
+    font-family: 'Noto Sans Arabic', 'Geist Variable', sans-serif;
+    }
 }

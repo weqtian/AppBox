@@ -29,7 +29,7 @@ import { useState, useCallback } from "react";
 import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
 
 function App() {
-  const { t, locale, setLocale } = useTranslation();
+  const { t, locale, setLocale, dir } = useTranslation();
   const [activeTab, setActiveTab] = useState("url");
   const [copyMessage, setCopyMessage] = useState(t("app.ready"));
 
@@ -44,7 +44,7 @@ function App() {
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <Sidebar>
+        <Sidebar side={dir === "rtl" ? "right" : "left"}>
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupLabel>{t("app.tools")}</SidebarGroupLabel>
