@@ -20,6 +20,8 @@ import {
   XIcon,
 } from "lucide-react";
 import { copyToClipboard } from "@/lib/clipboard";
+import { saveFile } from "@/lib/save-file";
+import { useTranslation } from "@/i18n";
 
 interface ImageFormatConverterPageProps {
   onCopy: () => void;
@@ -100,7 +102,8 @@ async function convertImage(
   sourceWidth: number,
   sourceHeight: number,
   outputFormat: string,
-  quality: number
+  quality: number,
+  errorMessage: string
 ): Promise<Blob> {
   // Step 1: 使用 createImageBitmap 快速解码（比 Image 元素更高效）
   const response = await fetch(sourceUrl);
@@ -124,7 +127,7 @@ async function convertImage(
     ctx = canvas.getContext("2d");
   }
 
-  if (!ctx) throw new Error("无法创建 Canvas 上下文");
+  if (!ctx) throw new Error(errorMessage);
 
   // JPEG/BMP 不支持透明，填充白色背景
   if (outputFormat === "image/jpeg" || outputFormat === "image/bmp") {
@@ -147,7 +150,7 @@ async function convertImage(
       canvas.toBlob(
         (b) => {
           if (b) resolve(b);
-          else reject(new Error("格式转换失败"));
+          else reject(new Error(errorMessage));
         },
         outputFormat,
         q
@@ -157,6 +160,7 @@ async function convertImage(
 }
 
 export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverterPageProps) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ConversionItem[]>([]);
   const [outputFormat, setOutputFormat] = useState("image/png");
   const [quality, setQuality] = useState(85);
@@ -275,7 +279,8 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
           item.source.width,
           item.source.height,
           outputFormat,
-          quality
+          quality,
+          t("imageFormatConverter.conversionFailed")
         );
 
         const resultUrl = URL.createObjectURL(resultBlob);
@@ -297,7 +302,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
           })
         );
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : "转换失败";
+        const errorMsg = err instanceof Error ? err.message : t("imageFormatConverter.conversionError");
         setItems((prev) =>
           prev.map((i) =>
             i.source.id === item.source.id
@@ -312,16 +317,13 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
     }
 
     setIsConverting(false);
-  }, [items, outputFormat, quality]);
+  }, [items, outputFormat, quality, t]);
 
-  const handleDownload = (item: ConversionItem) => {
+  const handleDownload = async (item: ConversionItem) => {
     if (!item.result) return;
     const ext = getOutputExt(outputFormat);
     const name = item.source.file.name.replace(/\.[^.]+$/, "") + `_converted.${ext}`;
-    const a = document.createElement("a");
-    a.href = item.result.url;
-    a.download = name;
-    a.click();
+    await saveFile(item.result.blob, name);
   };
 
   const handleDownloadAll = () => {
@@ -354,9 +356,9 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
         >
           <UploadIcon className="size-12 text-muted-foreground/50" />
           <div className="text-center">
-            <p className="text-sm font-medium">点击上传或拖拽图片到此处</p>
+            <p className="text-sm font-medium">{t("imageFormatConverter.uploadHint")}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              支持 JPEG、PNG、WebP、BMP、GIF、AVIF、SVG，可多选
+              {t("imageFormatConverter.uploadSupported")}
             </p>
           </div>
           <input
@@ -373,12 +375,12 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
           {/* 控制栏 */}
           <Card>
             <CardHeader>
-              <CardTitle>格式转换设置</CardTitle>
+              <CardTitle>{t("imageFormatConverter.settings")}</CardTitle>
               <CardAction>
                 <div className="flex gap-1">
                   <Button size="xs" variant="ghost" onClick={clearAll}>
                     <TrashIcon data-icon="inline-start" />
-                    清除全部
+                    {t("imageFormatConverter.clearAll")}
                   </Button>
                   <Button
                     size="xs"
@@ -386,7 +388,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <UploadIcon data-icon="inline-start" />
-                    添加图片
+                    {t("imageFormatConverter.addImages")}
                   </Button>
                 </div>
               </CardAction>
@@ -394,7 +396,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
             <CardContent>
               <div className="flex flex-wrap items-end gap-6">
                 <div className="space-y-2">
-                  <Label>输出格式</Label>
+                  <Label>{t("imageFormatConverter.outputFormat")}</Label>
                   <Select value={outputFormat} onValueChange={setOutputFormat}>
                     <SelectTrigger className="w-28">
                       <SelectValue />
@@ -414,7 +416,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
                 {QUALITY_FORMATS.has(outputFormat) && (
                   <div className="flex-1 min-w-48 space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label>输出质量</Label>
+                      <Label>{t("imageFormatConverter.outputQuality")}</Label>
                       <span className="text-sm text-muted-foreground tabular-nums">{quality}%</span>
                     </div>
                     <Slider
@@ -425,8 +427,8 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
                       step={5}
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>高压缩</span>
-                      <span>高质量</span>
+                      <span>{t("imageFormatConverter.highCompression")}</span>
+                      <span>{t("imageFormatConverter.highQuality")}</span>
                     </div>
                   </div>
                 )}
@@ -438,13 +440,13 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
                   >
                     <ArrowRightLeftIcon data-icon="inline-start" />
                     {isConverting
-                      ? `转换中 ${progress}%`
-                      : `转换${pendingCount > 0 ? ` (${pendingCount}张)` : ""}`}
+                      ? `${t("imageFormatConverter.converting")} ${progress}%`
+                      : `${t("imageFormatConverter.convert")}${pendingCount > 0 ? ` (${pendingCount}${t("imageFormatConverter.imagesUnit")})` : ""}`}
                   </Button>
                   {doneCount > 0 && (
                     <Button variant="outline" onClick={handleDownloadAll}>
                       <DownloadIcon data-icon="inline-start" />
-                      下载全部
+                      {t("imageFormatConverter.downloadAll")}
                     </Button>
                   )}
                 </div>
@@ -454,7 +456,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
               {isConverting && (
                 <div className="mt-4 space-y-1.5">
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>转换进度</span>
+                    <span>{t("imageFormatConverter.progress")}</span>
                     <span>{progress}% ({Math.round(progress / 100 * totalToConvert)}/{totalToConvert})</span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-primary/20">
@@ -545,7 +547,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
                             size="icon-xs"
                             variant="ghost"
                             onClick={() => handleCopyInfo(item)}
-                            title="复制信息"
+                            title={t("imageFormatConverter.copyInfo")}
                           >
                             <UploadIcon className="size-3.5 rotate-90" />
                           </Button>
@@ -553,7 +555,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
                             size="icon-xs"
                             variant="ghost"
                             onClick={() => handleDownload(item)}
-                            title="保存"
+                            title={t("imageFormatConverter.save")}
                           >
                             <DownloadIcon className="size-3.5" />
                           </Button>
@@ -563,7 +565,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
                         size="icon-xs"
                         variant="ghost"
                         onClick={() => removeItem(item.source.id)}
-                        title="移除"
+                        title={t("imageFormatConverter.remove")}
                       >
                         <XIcon className="size-3.5" />
                       </Button>
@@ -580,7 +582,7 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
             >
               <div className="text-center">
                 <UploadIcon className="size-6 mx-auto text-muted-foreground/50" />
-                <p className="text-xs text-muted-foreground mt-1">添加图片</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("imageFormatConverter.addImages")}</p>
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@ import URLCoderPage from "@/pages/URLCoderPage";
 import UUIDGeneratorPage from "@/pages/UUIDGeneratorPage";
 import ImageCompressorPage from "@/pages/ImageCompressorPage";
 import ImageFormatConverterPage from "@/pages/ImageFormatConverterPage";
-import StatusBar from "@components/StatusBar";
+import StatusBar from "@/components/StatusBar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Sidebar,
@@ -27,9 +27,8 @@ import {
 import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon } from "lucide-react";
 import { useState, useCallback } from "react";
 import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
-import type { TranslationKey } from "@/i18n";
 
-export default function App() {
+function App() {
   const { t, locale, setLocale } = useTranslation();
   const [activeTab, setActiveTab] = useState("url");
   const [copyMessage, setCopyMessage] = useState(t("app.ready"));
@@ -95,6 +94,20 @@ export default function App() {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
+          <SidebarFooter className="border-t p-2">
+            <Select value={locale} onValueChange={(v) => setLocale(v as Locale)}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.entries(localeNames) as [Locale, string][]).map(([key, name]) => (
+                  <SelectItem key={key} value={key}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </SidebarFooter>
         </Sidebar>
         <SidebarInset>
           <main className="flex-1 overflow-auto">

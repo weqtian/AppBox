@@ -19,6 +19,8 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { copyToClipboard } from "@/lib/clipboard";
+import { saveFile } from "@/lib/save-file";
+import { useTranslation } from "@/i18n";
 
 interface ImageCompressorPageProps {
   onCopy: () => void;
@@ -57,6 +59,7 @@ const OUTPUT_FORMATS = [
 ];
 
 export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps) {
+  const { t } = useTranslation();
   const [source, setSource] = useState<ImageInfo | null>(null);
   const [result, setResult] = useState<CompressedResult | null>(null);
   const [quality, setQuality] = useState(80);
@@ -149,20 +152,17 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
     }
   }, [source, quality, outputFormat]);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!result || !source) return;
     const ext = outputFormat.split("/")[1];
     const name = source.file.name.replace(/\.[^.]+$/, "") + `_compressed.${ext}`;
-    const a = document.createElement("a");
-    a.href = result.url;
-    a.download = name;
-    a.click();
+    await saveFile(result.blob, name);
   };
 
   const handleCopySizeInfo = async () => {
     if (!source || !result) return;
     const ratio = getCompressionRatio(source.file.size, result.blob.size);
-    const info = `原始: ${formatSize(source.file.size)} → 压缩后: ${formatSize(result.blob.size)} (节省 ${ratio}%)`;
+    const info = `${t("imageCompressor.originalImage")}: ${formatSize(source.file.size)} → ${t("imageCompressor.compressedResult")}: ${formatSize(result.blob.size)} (${t("imageCompressor.saved")} ${ratio}%)`;
     await copyToClipboard(info);
     onCopy();
   };
@@ -192,8 +192,8 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
         >
           <UploadIcon className="size-12 text-muted-foreground/50" />
           <div className="text-center">
-            <p className="text-sm font-medium">点击上传或拖拽图片到此处</p>
-            <p className="text-xs text-muted-foreground mt-1">支持 JPEG、PNG、WebP、BMP</p>
+            <p className="text-sm font-medium">{t("imageCompressor.uploadHint")}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("imageCompressor.uploadSupported")}</p>
           </div>
           <input
             ref={fileInputRef}
@@ -208,11 +208,11 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
           {/* 控制栏 */}
           <Card>
             <CardHeader>
-              <CardTitle>压缩设置</CardTitle>
+              <CardTitle>{t("imageCompressor.settings")}</CardTitle>
               <CardAction>
                 <Button size="xs" variant="ghost" onClick={handleClear}>
                   <TrashIcon data-icon="inline-start" />
-                  清除图片
+                  {t("imageCompressor.clearImage")}
                 </Button>
               </CardAction>
             </CardHeader>
@@ -220,7 +220,7 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
               <div className="flex flex-wrap items-end gap-6">
                 <div className="flex-1 min-w-48 space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label>压缩质量</Label>
+                    <Label>{t("imageCompressor.quality")}</Label>
                     <span className="text-sm text-muted-foreground tabular-nums">{quality}%</span>
                   </div>
                   <Slider
@@ -231,12 +231,12 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
                     step={5}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>高压缩</span>
-                    <span>高质量</span>
+                    <span>{t("imageCompressor.highCompression")}</span>
+                    <span>{t("imageCompressor.highQuality")}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>输出格式</Label>
+                  <Label>{t("imageCompressor.outputFormat")}</Label>
                   <Select value={outputFormat} onValueChange={setOutputFormat}>
                     <SelectTrigger className="w-28">
                       <SelectValue />
@@ -255,7 +255,7 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
                 <div className="flex gap-2">
                   <Button onClick={compress} disabled={isCompressing}>
                     <ImageIcon data-icon="inline-start" />
-                    {isCompressing ? "压缩中..." : "压缩"}
+                    {isCompressing ? t("imageCompressor.compressing") : t("imageCompressor.compress")}
                   </Button>
                 </div>
               </div>
@@ -268,7 +268,7 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  原始图片
+                  {t("imageCompressor.originalImage")}
                   <Badge variant="secondary">{formatSize(source.file.size)}</Badge>
                 </CardTitle>
               </CardHeader>
@@ -276,7 +276,7 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
                 <div className="relative rounded-lg overflow-hidden bg-muted/50 border">
                   <img
                     src={source.url}
-                    alt="原始图片"
+                    alt={t("imageCompressor.originalImage")}
                     className="w-full h-auto max-h-80 object-contain"
                   />
                 </div>
@@ -290,10 +290,10 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  压缩结果
+                  {t("imageCompressor.compressedResult")}
                   {result && (
                     <Badge variant={compressionRatio > 0 ? "default" : "destructive"}>
-                      {compressionRatio > 0 ? `节省 ${compressionRatio}%` : `增大 ${Math.abs(compressionRatio)}%`}
+                      {compressionRatio > 0 ? `${t("imageCompressor.saved")} ${compressionRatio}%` : `${t("imageCompressor.increased")} ${Math.abs(compressionRatio)}%`}
                     </Badge>
                   )}
                 </CardTitle>
@@ -305,7 +305,7 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
                       </Button>
                       <Button size="xs" variant="outline" onClick={handleDownload}>
                         <DownloadIcon data-icon="inline-start" />
-                        保存
+                        {t("imageCompressor.save")}
                       </Button>
                     </div>
                   </CardAction>
@@ -317,7 +317,7 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
                     <div className="relative rounded-lg overflow-hidden bg-muted/50 border">
                       <img
                         src={result.url}
-                        alt="压缩后"
+                        alt={t("imageCompressor.compressedResult")}
                         className="w-full h-auto max-h-80 object-contain"
                       />
                     </div>
@@ -327,7 +327,7 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
                   </>
                 ) : (
                   <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
-                    点击"压缩"按钮查看结果
+                    {t("imageCompressor.clickToCompress")}
                   </div>
                 )}
               </CardContent>

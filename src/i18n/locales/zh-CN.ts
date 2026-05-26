@@ -66,7 +66,13 @@ const zhCN = {
     conversionFailed: "格式转换失败",
     conversionError: "转换失败",
   },
-} as const;
+};
 
 export default zhCN;
-export type Translations = typeof zhCN;
+
+// 使用递归类型将所有值转为 string，保留嵌套结构
+export type Translations = {
+  [K in keyof typeof zhCN]: {
+    [K2 in keyof typeof zhCN[K]]: string;
+  };
+};

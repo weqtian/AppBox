@@ -13,12 +13,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CopyIcon, RefreshCwIcon } from "lucide-react";
 import { v1 as uuidv1, v4 as uuidv4 } from "uuid";
 import { copyToClipboard } from "@/lib/clipboard";
+import { useTranslation } from "@/i18n";
 
 interface UUIDGeneratorPageProps {
   onCopy: () => void;
 }
 
 export default function UUIDGeneratorPage({ onCopy }: UUIDGeneratorPageProps) {
+  const { t } = useTranslation();
   const [count, setCount] = useState(1);
   const [version, setVersion] = useState("v4");
   const [uuids, setUuids] = useState<string[]>([]);
@@ -64,12 +66,12 @@ export default function UUIDGeneratorPage({ onCopy }: UUIDGeneratorPageProps) {
         />
         <Button onClick={handleGenerate}>
           <RefreshCwIcon data-icon="inline-start" />
-          生成
+          {t("uuid.generate")}
         </Button>
         {uuids.length > 0 && (
           <Button variant="outline" onClick={copyAll}>
             <CopyIcon data-icon="inline-start" />
-            复制全部
+            {t("uuid.copyAll")}
           </Button>
         )}
       </div>

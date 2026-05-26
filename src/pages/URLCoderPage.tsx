@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/card";
 import { CopyIcon, RotateCcwIcon } from "lucide-react";
 import { copyToClipboard } from "@/lib/clipboard";
+import { useTranslation } from "@/i18n";
 
 interface URLCoderPageProps {
   onCopy: () => void;
 }
 
 export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
+  const { t } = useTranslation();
   const [input, setInput] = useState("");
 
   const encoded = input ? encodeURIComponent(input) : "";
@@ -23,7 +25,7 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
   try {
     decoded = input ? decodeURIComponent(input) : "";
   } catch {
-    decoded = "无效的编码字符串";
+    decoded = t("urlCoder.invalidEncodedString");
   }
 
   // 逐层解码：反复尝试 decodeURIComponent 直到无法继续
@@ -54,7 +56,7 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
     <div className="flex flex-col gap-4 p-4">
       <Card>
         <CardHeader>
-          <CardTitle>输入</CardTitle>
+          <CardTitle>{t("urlCoder.input")}</CardTitle>
           <CardAction>
             <Button
               size="xs"
@@ -63,13 +65,13 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
               disabled={!input}
             >
               <RotateCcwIcon data-icon="inline-start" />
-              清空
+              {t("urlCoder.clear")}
             </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
           <Textarea
-            placeholder="输入 URL 或文本..."
+            placeholder={t("urlCoder.placeholder")}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="min-h-24 font-mono"
@@ -80,7 +82,7 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>编码结果</CardTitle>
+            <CardTitle>{t("urlCoder.encodeResult")}</CardTitle>
             <CardAction>
               <Button
                 size="icon-xs"
@@ -97,20 +99,20 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
               readOnly
               value={encoded}
               className="min-h-20 font-mono"
-              placeholder="编码结果..."
+              placeholder={t("urlCoder.encodePlaceholder")}
             />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>解码结果</CardTitle>
+            <CardTitle>{t("urlCoder.decodeResult")}</CardTitle>
             <CardAction>
               <Button
                 size="icon-xs"
                 variant="ghost"
                 onClick={() => handleCopy(decoded)}
-                disabled={!decoded || decoded === "无效的编码字符串"}
+                disabled={!decoded || decoded === t("urlCoder.invalidEncodedString")}
               >
                 <CopyIcon />
               </Button>
@@ -121,7 +123,7 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
               readOnly
               value={decoded}
               className="min-h-20 font-mono"
-              placeholder="解码结果..."
+              placeholder={t("urlCoder.decodePlaceholder")}
             />
           </CardContent>
         </Card>
@@ -130,7 +132,7 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
       {deepDecoded !== decoded && deepDecoded !== input && input && (
         <Card>
           <CardHeader>
-            <CardTitle>逐层解码结果</CardTitle>
+            <CardTitle>{t("urlCoder.deepDecodeResult")}</CardTitle>
             <CardAction>
               <Button
                 size="icon-xs"
