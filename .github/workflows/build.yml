@@ -4,15 +4,14 @@ on:
   push:
     branches:
       - main
+    tags-ignore:
+      - 'v*'
   pull_request:
     branches:
       - main
-    types: [closed]
 
 jobs:
   build:
-    # PR 仅在合并时触发；普通 push 直接触发
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     strategy:
       fail-fast: false
       matrix:
@@ -45,7 +44,6 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
-          key: ${{ matrix.platform }}-${{ matrix.args }}
 
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
