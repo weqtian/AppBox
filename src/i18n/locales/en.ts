@@ -79,6 +79,13 @@ const en: Translations = {
     conversionFailed: "Format conversion failed",
     conversionError: "Conversion failed",
   },
+  quitDialog: {
+    title: "Confirm Exit",
+    description: "What would you like to do?",
+    minimize: "Minimize to Tray",
+    quit: "Quit",
+    cancel: "Cancel",
+  },
   jwt: {
     localOnly: "100% local parsing, never uploaded to the network",
     tokenInput: "JWT Token Input",

@@ -25,12 +25,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
+import { QuitConfirmDialog, type QuitChoice } from "@/components/QuitConfirmDialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
 
 function App() {
   const { t, locale, setLocale, dir } = useTranslation();
   const [activeTab, setActiveTab] = useState("url");
+  const [showQuitDialog, setShowQuitDialog] = useState(false);
+
+  useEffect(() => {
+    const appWindow = getCurrentWindow();
+    const unlisten = appWindow.listen("quit-requested", () => {
+      setShowQuitDialog(true);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  const handleQuitChoice = useCallback((choice: QuitChoice) => {
+    setShowQuitDialog(false);
+    if (choice !== "cancel") {
+      invoke("execute_quit_choice", { choice });
+    }
+  }, []);
 
   return (
     <TooltipProvider>
@@ -127,6 +148,11 @@ function App() {
           </main>
         </SidebarInset>
       </SidebarProvider>
+      <QuitConfirmDialog
+        open={showQuitDialog}
+        onOpenChange={setShowQuitDialog}
+        onChoice={handleQuitChoice}
+      />
     </TooltipProvider>
   );
 }

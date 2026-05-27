@@ -79,6 +79,13 @@ const ja: Translations = {
     conversionFailed: "フォーマット変換に失敗しました",
     conversionError: "変換に失敗しました",
   },
+  quitDialog: {
+    title: "終了の確認",
+    description: "どうしますか？",
+    minimize: "トレイに最小化",
+    quit: "終了",
+    cancel: "キャンセル",
+  },
   jwt: {
     localOnly: "100% ローカル解析、ネットワークに送信しません",
     tokenInput: "JWT Token 入力",

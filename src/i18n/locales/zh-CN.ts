@@ -77,6 +77,13 @@ const zhCN = {
     conversionFailed: "格式转换失败",
     conversionError: "转换失败",
   },
+  quitDialog: {
+    title: "确认退出",
+    description: "您希望如何处理？",
+    minimize: "最小化到任务栏",
+    quit: "退出程序",
+    cancel: "取消",
+  },
   jwt: {
     localOnly: "100% 本地解析，绝不上传网络",
     tokenInput: "JWT Token 输入",
