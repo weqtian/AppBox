@@ -2,7 +2,7 @@
 
 简体中文 | **[English](./README_EN.md)**
 
-基于 **Tauri 2 + React 19 + TypeScript + Vite 7** 的跨平台桌面工具箱应用，提供 URL 编解码、UUID 生成、图片压缩、图片格式转换等常用开发工具。
+基于 **Tauri 2 + React 19 + TypeScript + Vite 7** 的跨平台桌面工具箱应用，提供 URL 编解码、UUID 生成、JWT 解析、图片压缩、图片格式转换等常用开发工具。
 
 ## 功能特性
 
@@ -10,11 +10,13 @@
 |------|------|
 | URL 编解码 | URL 编码/解码，支持多层嵌套解码 |
 | UUID 生成器 | 批量生成 UUID v1/v4，支持一键复制 |
+| JWT 解析 | 实时解析 JWT Token，自动剥离常见前缀，颜色高亮 Header/Payload/Signature，时间戳字段格式化显示 |
 | 图片压缩 | 调整质量与输出格式压缩图片，实时预览压缩效果 |
 | 图片格式转换 | 批量转换图片格式（JPEG/PNG/WebP/AVIF/BMP），支持拖拽上传与批量下载 |
 
 ### 通用特性
 
+- **深色模式**：自动检测系统主题偏好，支持明暗切换
 - **国际化（i18n）**：支持中文、英语、日语、阿拉伯语，阿拉伯语自动 RTL 布局
 - **剪贴板集成**：通过 Tauri 插件直接读写系统剪贴板
 - **文件保存**：通过 Tauri 原生对话框选择保存路径
@@ -52,11 +54,13 @@ AppBox/
 │   │   └── locales/         # 语言文件（zh-CN/en/ja/ar）
 │   ├── lib/                 # 工具库
 │   │   ├── clipboard.ts     # 剪贴板操作（Tauri优先+浏览器回退）
+│   │   ├── jwt.ts           # JWT 解码与时间戳格式化
 │   │   ├── save-file.ts     # 文件保存（Tauri对话框+浏览器下载回退）
 │   │   └── utils.ts         # 通用工具函数
 │   ├── pages/               # 页面组件
 │   │   ├── URLCoderPage.tsx          # URL 编解码
 │   │   ├── UUIDGeneratorPage.tsx     # UUID 生成器
+│   │   ├── JwtParserPage.tsx         # JWT 解析
 │   │   ├── ImageCompressorPage.tsx   # 图片压缩
 │   │   └── ImageFormatConverterPage.tsx # 图片格式转换
 │   ├── App.tsx              # 主应用组件（侧边栏导航+页面路由）
@@ -203,7 +207,7 @@ if (filePath) await writeFile(filePath, data);
 ### Tauri 应用配置
 
 - 应用标识：`io.qingtian.appbox`
-- 默认窗口：800×600，标题 `AppBox`
+- 默认窗口：1280×832（最小 1024×720），标题 `AppBox`
 - 打包目标：全平台（`targets: "all"`）
 - 前端产物目录：`../dist`
 

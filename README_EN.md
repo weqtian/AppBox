@@ -1,6 +1,6 @@
 # AppBox
 
-A cross-platform desktop toolbox built with **Tauri 2 + React 19 + TypeScript + Vite 7**, providing common developer tools such as URL encoding/decoding, UUID generation, image compression, and image format conversion.
+A cross-platform desktop toolbox built with **Tauri 2 + React 19 + TypeScript + Vite 7**, providing common developer tools such as URL encoding/decoding, UUID generation, JWT parsing, image compression, and image format conversion.
 
 **[简体中文](./README.md)** | English
 
@@ -10,11 +10,13 @@ A cross-platform desktop toolbox built with **Tauri 2 + React 19 + TypeScript + 
 |------|-------------|
 | URL Encoder/Decoder | URL encoding/decoding with support for nested multi-layer decoding |
 | UUID Generator | Batch generate UUID v1/v4 with one-click copy |
+| JWT Parser | Real-time JWT token parsing with auto-prefix stripping, color-coded Header/Payload/Signature, and timestamp formatting |
 | Image Compressor | Compress images with adjustable quality and output format, real-time preview |
 | Image Format Converter | Batch convert image formats (JPEG/PNG/WebP/AVIF/BMP) with drag-and-drop upload and batch download |
 
 ### General Features
 
+- **Dark Mode**: Automatic system theme detection with light/dark switching
 - **Internationalization (i18n)**: Supports Chinese, English, Japanese, and Arabic with automatic RTL layout for Arabic
 - **Clipboard Integration**: Read/write system clipboard via Tauri plugins
 - **File Saving**: Choose save location via native Tauri file dialog
@@ -52,11 +54,13 @@ AppBox/
 │   │   └── locales/         # Language files (zh-CN/en/ja/ar)
 │   ├── lib/                 # Utility library
 │   │   ├── clipboard.ts     # Clipboard operations (Tauri first + browser fallback)
+│   │   ├── jwt.ts           # JWT decoding and timestamp formatting
 │   │   ├── save-file.ts     # File saving (Tauri dialog + browser download fallback)
 │   │   └── utils.ts         # General utility functions
 │   ├── pages/               # Page components
 │   │   ├── URLCoderPage.tsx          # URL encoder/decoder
 │   │   ├── UUIDGeneratorPage.tsx     # UUID generator
+│   │   ├── JwtParserPage.tsx         # JWT parser
 │   │   ├── ImageCompressorPage.tsx   # Image compressor
 │   │   └── ImageFormatConverterPage.tsx # Image format converter
 │   ├── App.tsx              # Main app component (sidebar navigation + page routing)
@@ -203,7 +207,7 @@ All system interactions provide browser fallbacks to ensure the app works in a p
 ### Tauri App Configuration
 
 - App identifier: `io.qingtian.appbox`
-- Default window: 800×600, title `AppBox`
+- Default window: 1280×832 (minimum 1024×720), title `AppBox`
 - Build targets: all platforms (`targets: "all"`)
 - Frontend output directory: `../dist`
 
