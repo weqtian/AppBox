@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CopyIcon, XIcon, ShieldCheckIcon, AlertTriangleIcon } from "lucide-react";
 import { decodeJwt, formatTimestamp, isTimestampKey, type JwtResult } from "@/lib/jwt";
@@ -11,84 +10,143 @@ interface JwtParserPageProps {
   onCopy: () => void;
 }
 
-function JsonBlock({
-  data,
-  labelColor,
+type Theme = "red" | "blue" | "slate";
+
+const THEME: Record<
+  Theme,
+  {
+    border: string;
+    headerBg: string;
+    label: string;
+    body: string;
+  }
+> = {
+  red: {
+    border: "border-red-200 dark:border-red-900/60",
+    headerBg: "bg-red-50/70 dark:bg-red-950/30",
+    label: "text-red-600 dark:text-red-400",
+    body: "bg-red-50/30 dark:bg-red-950/10",
+  },
+  blue: {
+    border: "border-blue-200 dark:border-blue-900/60",
+    headerBg: "bg-blue-50/70 dark:bg-blue-950/30",
+    label: "text-blue-600 dark:text-blue-400",
+    body: "bg-blue-50/30 dark:bg-blue-950/10",
+  },
+  slate: {
+    border: "border-border",
+    headerBg: "bg-muted/50",
+    label: "text-muted-foreground",
+    body: "bg-muted/20",
+  },
+};
+
+function SectionCard({
+  theme,
+  label,
+  hint,
+  copyText,
+  copyTitle,
   onCopy,
-  t,
-  copyLabel,
+  children,
 }: {
-  data: Record<string, unknown>;
-  labelColor: string;
+  theme: Theme;
+  label: string;
+  hint?: string;
+  copyText: string;
+  copyTitle: string;
   onCopy: (text: string) => void;
-  t: (key: TranslationKey) => string;
-  copyLabel: string;
+  children: React.ReactNode;
 }) {
-  const json = JSON.stringify(data, null, 2);
-
-  // 提取时间戳字段
-  const timestampFields = Object.entries(data).filter(([key]) => isTimestampKey(key));
-
+  const c = THEME[theme];
   return (
-    <Card className="border-0 shadow-none bg-transparent">
-      <div className="flex items-center justify-between px-1 pb-2">
-        <span className={`text-xs font-bold tracking-wider uppercase ${labelColor}`}>
-          {labelColor.includes("red") ? "HEADER" : "PAYLOAD"}
-        </span>
+    <div className={`rounded-lg border ${c.border} overflow-hidden`}>
+      <div className={`flex items-center justify-between gap-2 px-3 py-2 ${c.headerBg}`}>
+        <div className="min-w-0 flex items-baseline gap-2">
+          <span className={`text-xs font-bold tracking-wider uppercase ${c.label}`}>
+            {label}
+          </span>
+          {hint && <span className="text-[11px] text-muted-foreground truncate">{hint}</span>}
+        </div>
         <Button
           size="icon-xs"
           variant="ghost"
-          onClick={() => onCopy(json)}
-          title={copyLabel}
+          onClick={() => onCopy(copyText)}
+          title={copyTitle}
+          disabled={!copyText}
         >
           <CopyIcon />
         </Button>
       </div>
-      <CardContent className="p-0">
-        <pre className="text-sm font-mono whitespace-pre-wrap break-all bg-muted/50 rounded-lg p-3 leading-relaxed">
-          {syntaxHighlight(json, labelColor.includes("red") ? "red" : "blue")}
-        </pre>
-        {timestampFields.length > 0 && (
-          <div className="mt-3 space-y-1.5 border-t pt-3">
-            {timestampFields.map(([key, value]) => {
-              const ts = formatTimestamp(value);
-              const keyLabel = (() => {
-                switch (key) {
-                  case "exp": return t("jwt.exp");
-                  case "iat": return t("jwt.iat");
-                  case "nbf": return t("jwt.nbf");
-                  case "auth_time": return t("jwt.authTime");
-                  default: return key;
-                }
-              })();
-              return (
-                <div key={key} className="flex items-start gap-2 text-xs">
-                  <span className="font-mono font-semibold text-foreground/70 shrink-0">{keyLabel}:</span>
-                  <span className="text-muted-foreground">
-                    {ts ? (
-                      <>
-                        <span className="text-foreground">{ts.formatted}</span>
-                        <span className="ml-2 text-xs text-muted-foreground/80">({ts.relative})</span>
-                      </>
-                    ) : (
-                      String(value)
-                    )}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      <div className={`p-3 ${c.body}`}>{children}</div>
+    </div>
   );
 }
 
-/** 简易 JSON 语法高亮 */
-function syntaxHighlight(json: string, theme: "red" | "blue"): React.ReactNode[] {
+function JsonView({
+  data,
+  theme,
+  t,
+}: {
+  data: Record<string, unknown>;
+  theme: Theme;
+  t: (key: TranslationKey) => string;
+}) {
+  const json = JSON.stringify(data, null, 2);
+  const timestampFields = Object.entries(data).filter(([key]) => isTimestampKey(key));
+
+  return (
+    <>
+      <pre className="text-sm font-mono whitespace-pre-wrap break-all rounded-md bg-background/60 dark:bg-background/40 p-3 leading-relaxed">
+        {syntaxHighlight(json, theme)}
+      </pre>
+      {timestampFields.length > 0 && (
+        <div className="mt-3 space-y-1.5 border-t pt-3">
+          {timestampFields.map(([key, value]) => {
+            const ts = formatTimestamp(value);
+            const keyLabel = (() => {
+              switch (key) {
+                case "exp": return t("jwt.exp");
+                case "iat": return t("jwt.iat");
+                case "nbf": return t("jwt.nbf");
+                case "auth_time": return t("jwt.authTime");
+                default: return key;
+              }
+            })();
+            return (
+              <div key={key} className="flex items-start gap-2 text-xs">
+                <span className="font-mono font-semibold text-foreground/70 shrink-0">{keyLabel}:</span>
+                <span className="text-muted-foreground">
+                  {ts ? (
+                    <>
+                      <span className="text-foreground">{ts.formatted}</span>
+                      <span className="ms-2 text-xs text-muted-foreground/80">({ts.relative})</span>
+                    </>
+                  ) : (
+                    String(value)
+                  )}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+}
+
+function syntaxHighlight(json: string, theme: Theme): React.ReactNode[] {
   const lines = json.split("\n");
-  const keyColor = theme === "red" ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400";
-  const stringColor = theme === "red" ? "text-amber-700 dark:text-amber-400" : "text-emerald-700 dark:text-emerald-400";
+  const keyColor =
+    theme === "red"
+      ? "text-red-600 dark:text-red-400"
+      : theme === "blue"
+        ? "text-blue-600 dark:text-blue-400"
+        : "text-foreground";
+  const stringColor =
+    theme === "red"
+      ? "text-amber-700 dark:text-amber-400"
+      : "text-emerald-700 dark:text-emerald-400";
   const numberColor = "text-purple-600 dark:text-purple-400";
   const boolNullColor = "text-orange-600 dark:text-orange-400";
 
@@ -139,6 +197,7 @@ export default function JwtParserPage({ onCopy }: JwtParserPageProps) {
   const result: JwtResult = useMemo(() => decodeJwt(token), [token]);
 
   const handleCopy = async (text: string) => {
+    if (!text) return;
     await copyToClipboard(text);
     onCopy();
   };
@@ -183,7 +242,7 @@ export default function JwtParserPage({ onCopy }: JwtParserPageProps) {
         </div>
 
         {/* 右栏 - 输出区 */}
-        <div className="w-[55%] flex flex-col gap-2 min-h-0 pl-3">
+        <div className="w-[55%] flex flex-col gap-2 min-h-0 ps-3">
           <h2 className="text-sm font-semibold">{t("jwt.result")}</h2>
 
           {!token.trim() ? (
@@ -199,28 +258,44 @@ export default function JwtParserPage({ onCopy }: JwtParserPageProps) {
             </div>
           ) : (
             <ScrollArea className="flex-1 min-h-0">
-              <div className="space-y-4 pr-2">
-                {/* HEADER */}
+              <div className="space-y-3 pe-2">
                 {result.header && (
-                  <JsonBlock
-                    data={result.header}
-                    labelColor="text-red-500 dark:text-red-400"
+                  <SectionCard
+                    theme="red"
+                    label={t("jwt.header")}
+                    hint={t("jwt.headerHint")}
+                    copyText={JSON.stringify(result.header, null, 2)}
+                    copyTitle={t("jwt.copyHeader")}
                     onCopy={handleCopy}
-                    t={t}
-                    copyLabel={t("jwt.copyHeader")}
-                  />
+                  >
+                    <JsonView data={result.header} theme="red" t={t} />
+                  </SectionCard>
                 )}
-                {/* 分隔线 */}
-                <div className="border-t" />
-                {/* PAYLOAD */}
                 {result.payload && (
-                  <JsonBlock
-                    data={result.payload}
-                    labelColor="text-blue-500 dark:text-blue-400"
+                  <SectionCard
+                    theme="blue"
+                    label={t("jwt.payload")}
+                    hint={t("jwt.payloadHint")}
+                    copyText={JSON.stringify(result.payload, null, 2)}
+                    copyTitle={t("jwt.copyPayload")}
                     onCopy={handleCopy}
-                    t={t}
-                    copyLabel={t("jwt.copyPayload")}
-                  />
+                  >
+                    <JsonView data={result.payload} theme="blue" t={t} />
+                  </SectionCard>
+                )}
+                {result.signature && (
+                  <SectionCard
+                    theme="slate"
+                    label={t("jwt.signature")}
+                    hint={t("jwt.signatureHint")}
+                    copyText={result.signature}
+                    copyTitle={t("jwt.copySignature")}
+                    onCopy={handleCopy}
+                  >
+                    <pre className="text-sm font-mono whitespace-pre-wrap break-all rounded-md bg-background/60 dark:bg-background/40 p-3 leading-relaxed text-muted-foreground">
+                      {result.signature}
+                    </pre>
+                  </SectionCard>
                 )}
               </div>
             </ScrollArea>
