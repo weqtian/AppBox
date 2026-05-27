@@ -3,8 +3,6 @@ import type { Translations } from "./zh-CN";
 const ja: Translations = {
   app: {
     tools: "ツール",
-    ready: "準備完了",
-    copied: "コピー済み",
     language: "言語",
   },
   sidebar: {

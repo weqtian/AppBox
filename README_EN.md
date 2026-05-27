@@ -45,8 +45,7 @@ AppBox/
 ├── src/                     # Frontend source code
 │   ├── assets/              # Resources referenced by React components
 │   ├── components/          # Components directory
-│   │   ├── ui/              # shadcn/ui base components (15)
-│   │   └── StatusBar.tsx    # Bottom status bar component
+│   │   └── ui/              # shadcn/ui base components (15)
 │   ├── hooks/               # Custom Hooks
 │   │   └── use-mobile.ts    # Mobile detection
 │   ├── i18n/                # Internationalization
@@ -139,7 +138,7 @@ This command runs TypeScript type checking and Vite frontend bundling first, the
 
 - Entry file `src/main.tsx` renders the app using `ReactDOM.createRoot`
 - Components use React 19 functional components + Hooks pattern
-- Sidebar navigation switches pages (`Sidebar` + conditional rendering), bottom status bar shows operation feedback
+- Sidebar navigation switches pages (`Sidebar` + conditional rendering)
 - UI components based on shadcn/ui (radix-nova style), styled with Tailwind CSS 4
 - Internationalization via custom `I18nProvider` + `useTranslation` Hook with nested key translation support
 - Image processing based on Canvas API, prioritizing `createImageBitmap` + `OffscreenCanvas` for high performance

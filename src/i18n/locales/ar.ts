@@ -3,8 +3,6 @@ import type { Translations } from "./zh-CN";
 const ar: Translations = {
   app: {
     tools: "الأدوات",
-    ready: "جاهز",
-    copied: "تم النسخ",
     language: "اللغة",
   },
   sidebar: {

@@ -45,8 +45,7 @@ AppBox/
 ├── src/                     # 前端源码
 │   ├── assets/              # React组件引用的资源
 │   ├── components/          # 组件目录
-│   │   ├── ui/              # shadcn/ui 基础组件（15个）
-│   │   └── StatusBar.tsx    # 底部状态栏组件
+│   │   └── ui/              # shadcn/ui 基础组件（15个）
 │   ├── hooks/               # 自定义 Hooks
 │   │   └── use-mobile.ts    # 移动端检测
 │   ├── i18n/                # 国际化
@@ -139,7 +138,7 @@ bun run tauri build
 
 - 入口文件 `src/main.tsx` 使用 `ReactDOM.createRoot` 渲染应用
 - 组件使用 React 19 的函数式组件 + Hooks 模式
-- 侧边栏导航切换页面（`Sidebar` + 条件渲染），底部状态栏显示操作反馈
+- 侧边栏导航切换页面（`Sidebar` + 条件渲染）
 - UI 组件基于 shadcn/ui（radix-nova 风格），通过 Tailwind CSS 4 样式化
 - 国际化通过自研 `I18nProvider` + `useTranslation` Hook 实现，支持嵌套 key 翻译
 - 图片处理基于 Canvas API，优先使用 `createImageBitmap` + `OffscreenCanvas` 高性能方案

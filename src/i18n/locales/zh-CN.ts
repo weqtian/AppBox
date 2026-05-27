@@ -1,8 +1,6 @@
 const zhCN = {
   app: {
     tools: "工具",
-    ready: "就绪",
-    copied: "已复制",
     language: "语言",
   },
   sidebar: {

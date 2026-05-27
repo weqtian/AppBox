@@ -3,7 +3,6 @@ import UUIDGeneratorPage from "@/pages/UUIDGeneratorPage";
 import ImageCompressorPage from "@/pages/ImageCompressorPage";
 import ImageFormatConverterPage from "@/pages/ImageFormatConverterPage";
 import JwtParserPage from "@/pages/JwtParserPage";
-import StatusBar from "@/components/StatusBar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Sidebar,
@@ -26,21 +25,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
 
 function App() {
   const { t, locale, setLocale, dir } = useTranslation();
   const [activeTab, setActiveTab] = useState("url");
-  const [copyMessage, setCopyMessage] = useState(t("app.ready"));
-
-  const handleCopy = useCallback(() => {
-    setCopyMessage(t("app.copied"));
-  }, [t]);
-
-  const handleClearMessage = useCallback(() => {
-    setCopyMessage(t("app.ready"));
-  }, [t]);
 
   return (
     <TooltipProvider>
@@ -129,13 +119,12 @@ function App() {
         </Sidebar>
         <SidebarInset>
           <main className="flex-1 overflow-auto">
-            {activeTab === "url" && <URLCoderPage onCopy={handleCopy} />}
-            {activeTab === "uuid" && <UUIDGeneratorPage onCopy={handleCopy} />}
-            {activeTab === "image" && <ImageCompressorPage onCopy={handleCopy} />}
-            {activeTab === "format" && <ImageFormatConverterPage onCopy={handleCopy} />}
-            {activeTab === "jwt" && <JwtParserPage onCopy={handleCopy} />}
+            {activeTab === "url" && <URLCoderPage />}
+            {activeTab === "uuid" && <UUIDGeneratorPage />}
+            {activeTab === "image" && <ImageCompressorPage />}
+            {activeTab === "format" && <ImageFormatConverterPage />}
+            {activeTab === "jwt" && <JwtParserPage />}
           </main>
-          <StatusBar message={copyMessage} onClear={handleClearMessage} />
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
