@@ -2,6 +2,7 @@ import URLCoderPage from "@/pages/URLCoderPage";
 import UUIDGeneratorPage from "@/pages/UUIDGeneratorPage";
 import ImageCompressorPage from "@/pages/ImageCompressorPage";
 import ImageFormatConverterPage from "@/pages/ImageFormatConverterPage";
+import JwtParserPage from "@/pages/JwtParserPage";
 import StatusBar from "@/components/StatusBar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
@@ -24,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon } from "lucide-react";
+import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon } from "lucide-react";
 import { useState, useCallback } from "react";
 import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
 
@@ -90,6 +91,16 @@ function App() {
                       <span>{t("sidebar.imageFormatConverter")}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={activeTab === "jwt"}
+                      onClick={() => setActiveTab("jwt")}
+                      tooltip={t("sidebar.jwtParser")}
+                    >
+                      <KeyRoundIcon />
+                      <span>{t("sidebar.jwtParser")}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -115,6 +126,7 @@ function App() {
             {activeTab === "uuid" && <UUIDGeneratorPage onCopy={handleCopy} />}
             {activeTab === "image" && <ImageCompressorPage onCopy={handleCopy} />}
             {activeTab === "format" && <ImageFormatConverterPage onCopy={handleCopy} />}
+            {activeTab === "jwt" && <JwtParserPage onCopy={handleCopy} />}
           </main>
           <StatusBar message={copyMessage} onClear={handleClearMessage} />
         </SidebarInset>

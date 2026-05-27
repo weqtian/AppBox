@@ -12,6 +12,7 @@ const ar: Translations = {
     uuidGenerator: "مولّد UUID",
     imageCompressor: "ضغط الصور",
     imageFormatConverter: "تحويل صيغة الصور",
+    jwtParser: "تحليل JWT",
   },
   urlCoder: {
     input: "الإدخال",
@@ -67,6 +68,22 @@ const ar: Translations = {
     canvasContextError: "لا يمكن إنشاء سياق Canvas",
     conversionFailed: "فشل تحويل الصيغة",
     conversionError: "فشل التحويل",
+  },
+  jwt: {
+    localOnly: "تحليل محلي 100%، لا يُرسل إلى الشبكة أبدًا",
+    tokenInput: "إدخال JWT Token",
+    clear: "مسح",
+    placeholder: "الصق JWT Token هنا...",
+    result: "نتيجة التحليل",
+    emptyHint: "ستظهر نتيجة التحليل في الوقت الفعلي عند الإدخال",
+    invalid: "صيغة JWT غير صالحة",
+    copyHeader: "نسخ الرأس",
+    copyPayload: "نسخ الحمولة",
+    exp: "تاريخ الانتهاء",
+    iat: "تاريخ الإصدار",
+    nbf: "صالح قبل",
+    authTime: "وقت المصادقة",
+    strippedPrefix: "تمت إزالة البادئة تلقائيًا",
   },
 };
 

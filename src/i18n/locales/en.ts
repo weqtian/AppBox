@@ -12,6 +12,7 @@ const en: Translations = {
     uuidGenerator: "UUID Generator",
     imageCompressor: "Image Compressor",
     imageFormatConverter: "Image Format Converter",
+    jwtParser: "JWT Parser",
   },
   urlCoder: {
     input: "Input",
@@ -67,6 +68,22 @@ const en: Translations = {
     canvasContextError: "Cannot create Canvas context",
     conversionFailed: "Format conversion failed",
     conversionError: "Conversion failed",
+  },
+  jwt: {
+    localOnly: "100% local parsing, never uploaded to the network",
+    tokenInput: "JWT Token Input",
+    clear: "Clear",
+    placeholder: "Paste your JWT Token here...",
+    result: "Parsed Result",
+    emptyHint: "Parsed result will appear in real-time as you type",
+    invalid: "Invalid JWT format",
+    copyHeader: "Copy Header",
+    copyPayload: "Copy Payload",
+    exp: "Expires At",
+    iat: "Issued At",
+    nbf: "Not Before",
+    authTime: "Auth Time",
+    strippedPrefix: "Automatically stripped prefix",
   },
 };
 

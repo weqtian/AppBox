@@ -10,6 +10,7 @@ const zhCN = {
     uuidGenerator: "UUID 生成",
     imageCompressor: "图片压缩",
     imageFormatConverter: "图片格式转换",
+    jwtParser: "JWT 解析",
   },
   urlCoder: {
     input: "输入",
@@ -65,6 +66,22 @@ const zhCN = {
     canvasContextError: "无法创建 Canvas 上下文",
     conversionFailed: "格式转换失败",
     conversionError: "转换失败",
+  },
+  jwt: {
+    localOnly: "100% 本地解析，绝不上传网络",
+    tokenInput: "JWT Token 输入",
+    clear: "清空",
+    placeholder: "在此粘贴您的 JWT Token...",
+    result: "解析结果",
+    emptyHint: "输入 JWT Token 后将实时显示解析结果",
+    invalid: "JWT 格式无效",
+    copyHeader: "复制 Header",
+    copyPayload: "复制 Payload",
+    exp: "过期时间",
+    iat: "签发时间",
+    nbf: "生效时间",
+    authTime: "认证时间",
+    strippedPrefix: "已自动去除前缀",
   },
 };
 

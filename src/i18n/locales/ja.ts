@@ -12,6 +12,7 @@ const ja: Translations = {
     uuidGenerator: "UUID 生成",
     imageCompressor: "画像圧縮",
     imageFormatConverter: "画像フォーマット変換",
+    jwtParser: "JWT 解析",
   },
   urlCoder: {
     input: "入力",
@@ -67,6 +68,22 @@ const ja: Translations = {
     canvasContextError: "Canvas コンテキストを作成できません",
     conversionFailed: "フォーマット変換に失敗しました",
     conversionError: "変換に失敗しました",
+  },
+  jwt: {
+    localOnly: "100% ローカル解析、ネットワークに送信しません",
+    tokenInput: "JWT Token 入力",
+    clear: "クリア",
+    placeholder: "JWT Token をここに貼り付け...",
+    result: "解析結果",
+    emptyHint: "JWT Token を入力するとリアルタイムで解析結果が表示されます",
+    invalid: "JWT 形式が無効です",
+    copyHeader: "ヘッダーをコピー",
+    copyPayload: "ペイロードをコピー",
+    exp: "有効期限",
+    iat: "発行日時",
+    nbf: "有効開始日時",
+    authTime: "認証日時",
+    strippedPrefix: "プレフィックスを自動削除しました",
   },
 };
 
