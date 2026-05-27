@@ -1,6 +1,7 @@
 export interface JwtResult {
   header: Record<string, unknown> | null;
   payload: Record<string, unknown> | null;
+  signature: string | null;
   isValid: boolean;
   error?: string;
   /** 自动剥离的前缀（如 "Bearer"），未剥离时为 undefined */
@@ -53,13 +54,13 @@ function base64UrlDecode(str: string): string {
 
 export function decodeJwt(raw: string): JwtResult {
   if (!raw.trim()) {
-    return { header: null, payload: null, isValid: false };
+    return { header: null, payload: null, signature: null, isValid: false };
   }
 
   const { token, prefix: strippedPrefix } = stripPrefix(raw);
 
   if (!token) {
-    return { header: null, payload: null, isValid: false };
+    return { header: null, payload: null, signature: null, isValid: false };
   }
 
   const parts = token.split(".");
@@ -67,6 +68,7 @@ export function decodeJwt(raw: string): JwtResult {
     return {
       header: null,
       payload: null,
+      signature: null,
       isValid: false,
       error: "JWT 格式无效，必须包含两个「.」分隔符",
       strippedPrefix,
@@ -76,12 +78,13 @@ export function decodeJwt(raw: string): JwtResult {
   try {
     const header = JSON.parse(base64UrlDecode(parts[0]));
     const payload = JSON.parse(base64UrlDecode(parts[1]));
-    return { header, payload, isValid: true, strippedPrefix };
+    return { header, payload, signature: parts[2], isValid: true, strippedPrefix };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return {
       header: null,
       payload: null,
+      signature: null,
       isValid: false,
       error: "解析失败: " + message,
       strippedPrefix,

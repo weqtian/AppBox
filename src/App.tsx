@@ -48,7 +48,7 @@ function App() {
         <Sidebar side={dir === "rtl" ? "right" : "left"}>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>{t("app.tools")}</SidebarGroupLabel>
+              <SidebarGroupLabel>{t("sidebar.dataTools")}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
@@ -73,6 +73,23 @@ function App() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
+                      isActive={activeTab === "jwt"}
+                      onClick={() => setActiveTab("jwt")}
+                      tooltip={t("sidebar.jwtParser")}
+                    >
+                      <KeyRoundIcon />
+                      <span>{t("sidebar.jwtParser")}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <SidebarGroup>
+              <SidebarGroupLabel>{t("sidebar.imageTools")}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
                       isActive={activeTab === "image"}
                       onClick={() => setActiveTab("image")}
                       tooltip={t("sidebar.imageCompressor")}
@@ -89,16 +106,6 @@ function App() {
                     >
                       <ArrowRightLeftIcon />
                       <span>{t("sidebar.imageFormatConverter")}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      isActive={activeTab === "jwt"}
-                      onClick={() => setActiveTab("jwt")}
-                      tooltip={t("sidebar.jwtParser")}
-                    >
-                      <KeyRoundIcon />
-                      <span>{t("sidebar.jwtParser")}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>

@@ -1,11 +1,13 @@
 {
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(bunx tsc *)",
+      "Bash(echo \"exit=$?\")"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
-  ],
-  "permissions": {
-    "allow": [
-      "WebFetch(domain:github.com)"
-    ]
-  }
+  ]
 }

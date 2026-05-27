@@ -8,7 +8,7 @@ import {
   CardTitle,
   CardAction,
 } from "@/components/ui/card";
-import { CopyIcon, RotateCcwIcon } from "lucide-react";
+import { CopyIcon, RotateCcwIcon, LinkIcon, InfoIcon } from "lucide-react";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useTranslation } from "@/i18n";
 
@@ -16,9 +16,16 @@ interface URLCoderPageProps {
   onCopy: () => void;
 }
 
+const URL_RE = /^(https?:\/\/|ftp:\/\/|www\.)/i;
+const ENCODED_RE = /%[0-9A-Fa-f]{2}/;
+
 export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
   const { t } = useTranslation();
   const [input, setInput] = useState("");
+
+  const trimmed = input.trim();
+  const looksLikeUrl = trimmed.length > 0 && URL_RE.test(trimmed);
+  const looksEncoded = trimmed.length > 0 && ENCODED_RE.test(trimmed);
 
   const encoded = input ? encodeURIComponent(input) : "";
   let decoded = "";
@@ -76,6 +83,21 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
             onChange={(e) => setInput(e.target.value)}
             className="min-h-24 font-mono"
           />
+          {(looksLikeUrl || looksEncoded) && (
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              {looksLikeUrl ? (
+                <>
+                  <LinkIcon className="h-3.5 w-3.5 text-blue-500" />
+                  <span>{t("urlCoder.detectedUrl")}</span>
+                </>
+              ) : (
+                <>
+                  <InfoIcon className="h-3.5 w-3.5 text-amber-500" />
+                  <span>{t("urlCoder.detectedEncoded")}</span>
+                </>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -98,7 +120,7 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
             <Textarea
               readOnly
               value={encoded}
-              className="min-h-20 font-mono"
+              className="min-h-20 font-mono bg-muted/40"
               placeholder={t("urlCoder.encodePlaceholder")}
             />
           </CardContent>
@@ -122,7 +144,7 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
             <Textarea
               readOnly
               value={decoded}
-              className="min-h-20 font-mono"
+              className="min-h-20 font-mono bg-muted/40"
               placeholder={t("urlCoder.decodePlaceholder")}
             />
           </CardContent>
@@ -147,7 +169,7 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
             <Textarea
               readOnly
               value={deepDecoded}
-              className="min-h-20 font-mono"
+              className="min-h-20 font-mono bg-muted/40"
             />
           </CardContent>
         </Card>
