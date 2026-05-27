@@ -3,7 +3,6 @@ import UUIDGeneratorPage from "@/pages/UUIDGeneratorPage";
 import ImageCompressorPage from "@/pages/ImageCompressorPage";
 import ImageFormatConverterPage from "@/pages/ImageFormatConverterPage";
 import JwtParserPage from "@/pages/JwtParserPage";
-import StatusBar from "@/components/StatusBar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Sidebar,
@@ -26,21 +25,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
+import { QuitConfirmDialog, type QuitChoice } from "@/components/QuitConfirmDialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
 
 function App() {
   const { t, locale, setLocale, dir } = useTranslation();
   const [activeTab, setActiveTab] = useState("url");
-  const [copyMessage, setCopyMessage] = useState(t("app.ready"));
+  const [showQuitDialog, setShowQuitDialog] = useState(false);
 
-  const handleCopy = useCallback(() => {
-    setCopyMessage(t("app.copied"));
-  }, [t]);
+  useEffect(() => {
+    const appWindow = getCurrentWindow();
+    const unlisten = appWindow.listen("quit-requested", () => {
+      setShowQuitDialog(true);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
 
-  const handleClearMessage = useCallback(() => {
-    setCopyMessage(t("app.ready"));
-  }, [t]);
+  const handleQuitChoice = useCallback((choice: QuitChoice) => {
+    setShowQuitDialog(false);
+    if (choice !== "cancel") {
+      invoke("execute_quit_choice", { choice });
+    }
+  }, []);
 
   return (
     <TooltipProvider>
@@ -129,15 +140,19 @@ function App() {
         </Sidebar>
         <SidebarInset>
           <main className="flex-1 overflow-auto">
-            {activeTab === "url" && <URLCoderPage onCopy={handleCopy} />}
-            {activeTab === "uuid" && <UUIDGeneratorPage onCopy={handleCopy} />}
-            {activeTab === "image" && <ImageCompressorPage onCopy={handleCopy} />}
-            {activeTab === "format" && <ImageFormatConverterPage onCopy={handleCopy} />}
-            {activeTab === "jwt" && <JwtParserPage onCopy={handleCopy} />}
+            {activeTab === "url" && <URLCoderPage />}
+            {activeTab === "uuid" && <UUIDGeneratorPage />}
+            {activeTab === "image" && <ImageCompressorPage />}
+            {activeTab === "format" && <ImageFormatConverterPage />}
+            {activeTab === "jwt" && <JwtParserPage />}
           </main>
-          <StatusBar message={copyMessage} onClear={handleClearMessage} />
         </SidebarInset>
       </SidebarProvider>
+      <QuitConfirmDialog
+        open={showQuitDialog}
+        onOpenChange={setShowQuitDialog}
+        onChoice={handleQuitChoice}
+      />
     </TooltipProvider>
   );
 }

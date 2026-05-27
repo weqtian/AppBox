@@ -3,8 +3,6 @@ import type { Translations } from "./zh-CN";
 const ar: Translations = {
   app: {
     tools: "الأدوات",
-    ready: "جاهز",
-    copied: "تم النسخ",
     language: "اللغة",
   },
   sidebar: {
@@ -80,6 +78,13 @@ const ar: Translations = {
     canvasContextError: "لا يمكن إنشاء سياق Canvas",
     conversionFailed: "فشل تحويل الصيغة",
     conversionError: "فشل التحويل",
+  },
+  quitDialog: {
+    title: "تأكيد الخروج",
+    description: "ماذا تريد أن تفعل؟",
+    minimize: "تصغير إلى شريط المهام",
+    quit: "إنهاء",
+    cancel: "إلغاء",
   },
   jwt: {
     localOnly: "تحليل محلي 100%، لا يُرسل إلى الشبكة أبدًا",

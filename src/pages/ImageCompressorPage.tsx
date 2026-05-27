@@ -22,10 +22,6 @@ import { copyToClipboard } from "@/lib/clipboard";
 import { saveFile } from "@/lib/save-file";
 import { useTranslation } from "@/i18n";
 
-interface ImageCompressorPageProps {
-  onCopy: () => void;
-}
-
 interface ImageInfo {
   file: File;
   url: string;
@@ -58,7 +54,7 @@ const OUTPUT_FORMATS = [
   { value: "image/webp", label: "WebP" },
 ];
 
-export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps) {
+export default function ImageCompressorPage() {
   const { t } = useTranslation();
   const [source, setSource] = useState<ImageInfo | null>(null);
   const [result, setResult] = useState<CompressedResult | null>(null);
@@ -164,7 +160,6 @@ export default function ImageCompressorPage({ onCopy }: ImageCompressorPageProps
     const ratio = getCompressionRatio(source.file.size, result.blob.size);
     const info = `${t("imageCompressor.originalImage")}: ${formatSize(source.file.size)} → ${t("imageCompressor.compressedResult")}: ${formatSize(result.blob.size)} (${t("imageCompressor.saved")} ${ratio}%)`;
     await copyToClipboard(info);
-    onCopy();
   };
 
   const handleClear = () => {

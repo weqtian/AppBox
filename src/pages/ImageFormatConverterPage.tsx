@@ -23,10 +23,6 @@ import { copyToClipboard } from "@/lib/clipboard";
 import { saveFile } from "@/lib/save-file";
 import { useTranslation } from "@/i18n";
 
-interface ImageFormatConverterPageProps {
-  onCopy: () => void;
-}
-
 interface SourceImage {
   id: string;
   file: File;
@@ -159,7 +155,7 @@ async function convertImage(
   }
 }
 
-export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverterPageProps) {
+export default function ImageFormatConverterPage() {
   const { t } = useTranslation();
   const [items, setItems] = useState<ConversionItem[]>([]);
   const [outputFormat, setOutputFormat] = useState("image/png");
@@ -336,7 +332,6 @@ export default function ImageFormatConverterPage({ onCopy }: ImageFormatConverte
     if (!item.result) return;
     const info = `${item.source.file.name} (${formatSize(item.source.file.size)}) → ${getFormatLabel(outputFormat)} (${formatSize(item.result.blob.size)})`;
     await copyToClipboard(info);
-    onCopy();
   };
 
   const pendingCount = items.filter((i) => i.status === "pending" || i.status === "error").length;

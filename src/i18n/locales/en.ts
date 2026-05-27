@@ -3,8 +3,6 @@ import type { Translations } from "./zh-CN";
 const en: Translations = {
   app: {
     tools: "Tools",
-    ready: "Ready",
-    copied: "Copied",
     language: "Language",
   },
   sidebar: {
@@ -80,6 +78,13 @@ const en: Translations = {
     canvasContextError: "Cannot create Canvas context",
     conversionFailed: "Format conversion failed",
     conversionError: "Conversion failed",
+  },
+  quitDialog: {
+    title: "Confirm Exit",
+    description: "What would you like to do?",
+    minimize: "Minimize to Tray",
+    quit: "Quit",
+    cancel: "Cancel",
   },
   jwt: {
     localOnly: "100% local parsing, never uploaded to the network",

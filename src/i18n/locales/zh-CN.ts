@@ -1,8 +1,6 @@
 const zhCN = {
   app: {
     tools: "工具",
-    ready: "就绪",
-    copied: "已复制",
     language: "语言",
   },
   sidebar: {
@@ -78,6 +76,13 @@ const zhCN = {
     canvasContextError: "无法创建 Canvas 上下文",
     conversionFailed: "格式转换失败",
     conversionError: "转换失败",
+  },
+  quitDialog: {
+    title: "确认退出",
+    description: "您希望如何处理？",
+    minimize: "最小化到任务栏",
+    quit: "退出程序",
+    cancel: "取消",
   },
   jwt: {
     localOnly: "100% 本地解析，绝不上传网络",

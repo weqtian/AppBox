@@ -12,14 +12,10 @@ import { CopyIcon, RotateCcwIcon, LinkIcon, InfoIcon } from "lucide-react";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useTranslation } from "@/i18n";
 
-interface URLCoderPageProps {
-  onCopy: () => void;
-}
-
 const URL_RE = /^(https?:\/\/|ftp:\/\/|www\.)/i;
 const ENCODED_RE = /%[0-9A-Fa-f]{2}/;
 
-export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
+export default function URLCoderPage() {
   const { t } = useTranslation();
   const [input, setInput] = useState("");
 
@@ -56,7 +52,6 @@ export default function URLCoderPage({ onCopy }: URLCoderPageProps) {
   const handleCopy = async (text: string) => {
     if (!text) return;
     await copyToClipboard(text);
-    onCopy();
   };
 
   return (

@@ -16,10 +16,6 @@ import { v1 as uuidv1, v4 as uuidv4 } from "uuid";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useTranslation } from "@/i18n";
 
-interface UUIDGeneratorPageProps {
-  onCopy: () => void;
-}
-
 function applyFormat(uuid: string, hyphens: boolean, uppercase: boolean): string {
   let out = uuid;
   if (!hyphens) out = out.replace(/-/g, "");
@@ -27,7 +23,7 @@ function applyFormat(uuid: string, hyphens: boolean, uppercase: boolean): string
   return out;
 }
 
-export default function UUIDGeneratorPage({ onCopy }: UUIDGeneratorPageProps) {
+export default function UUIDGeneratorPage() {
   const { t } = useTranslation();
   const [count, setCount] = useState(1);
   const [version, setVersion] = useState("v4");
@@ -48,12 +44,10 @@ export default function UUIDGeneratorPage({ onCopy }: UUIDGeneratorPageProps) {
 
   const copySingle = async (uuid: string) => {
     await copyToClipboard(uuid);
-    onCopy();
   };
 
   const copyAll = async () => {
     await copyToClipboard(uuids.join("\n"));
-    onCopy();
   };
 
   return (

@@ -6,10 +6,6 @@ import { decodeJwt, formatTimestamp, isTimestampKey, type JwtResult } from "@/li
 import { copyToClipboard } from "@/lib/clipboard";
 import { useTranslation, type TranslationKey } from "@/i18n";
 
-interface JwtParserPageProps {
-  onCopy: () => void;
-}
-
 type Theme = "red" | "blue" | "slate";
 
 const THEME: Record<
@@ -190,7 +186,7 @@ function colorizeValue(
   return <>{value}</>;
 }
 
-export default function JwtParserPage({ onCopy }: JwtParserPageProps) {
+export default function JwtParserPage() {
   const { t } = useTranslation();
   const [token, setToken] = useState("");
 
@@ -199,7 +195,6 @@ export default function JwtParserPage({ onCopy }: JwtParserPageProps) {
   const handleCopy = async (text: string) => {
     if (!text) return;
     await copyToClipboard(text);
-    onCopy();
   };
 
   const handleClear = () => setToken("");

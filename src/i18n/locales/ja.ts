@@ -3,8 +3,6 @@ import type { Translations } from "./zh-CN";
 const ja: Translations = {
   app: {
     tools: "ツール",
-    ready: "準備完了",
-    copied: "コピー済み",
     language: "言語",
   },
   sidebar: {
@@ -80,6 +78,13 @@ const ja: Translations = {
     canvasContextError: "Canvas コンテキストを作成できません",
     conversionFailed: "フォーマット変換に失敗しました",
     conversionError: "変換に失敗しました",
+  },
+  quitDialog: {
+    title: "終了の確認",
+    description: "どうしますか？",
+    minimize: "トレイに最小化",
+    quit: "終了",
+    cancel: "キャンセル",
   },
   jwt: {
     localOnly: "100% ローカル解析、ネットワークに送信しません",
