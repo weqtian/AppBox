@@ -3,6 +3,7 @@ import UUIDGeneratorPage from "@/pages/UUIDGeneratorPage";
 import ImageCompressorPage from "@/pages/ImageCompressorPage";
 import ImageFormatConverterPage from "@/pages/ImageFormatConverterPage";
 import JwtParserPage from "@/pages/JwtParserPage";
+import VideoFrameExtractorPage from "@/pages/VideoFrameExtractorPage";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Sidebar,
@@ -24,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon } from "lucide-react";
+import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, VideoIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
 import { QuitConfirmDialog, type QuitChoice } from "@/components/QuitConfirmDialog";
@@ -119,6 +120,16 @@ function App() {
                       <span>{t("sidebar.imageFormatConverter")}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={activeTab === "video"}
+                      onClick={() => setActiveTab("video")}
+                      tooltip={t("sidebar.videoExtractor")}
+                    >
+                      <VideoIcon />
+                      <span>{t("sidebar.videoExtractor")}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -145,6 +156,7 @@ function App() {
             {activeTab === "image" && <ImageCompressorPage />}
             {activeTab === "format" && <ImageFormatConverterPage />}
             {activeTab === "jwt" && <JwtParserPage />}
+            {activeTab === "video" && <VideoFrameExtractorPage />}
           </main>
         </SidebarInset>
       </SidebarProvider>
