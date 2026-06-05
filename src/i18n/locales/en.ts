@@ -262,7 +262,7 @@ const en: Translations = {
     downloadInstall: "Download and Install",
     downloading: "Downloading update...",
     installReady: "Download complete, restarting...",
-    checkError: "Failed to check for updates",
+    checkError: "Failed to check for updates, please check your network or try a different mirror",
     downloadError: "Failed to download update",
     retry: "Retry",
   },

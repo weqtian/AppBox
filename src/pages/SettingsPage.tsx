@@ -100,8 +100,8 @@ function UpdateSection() {
   const [error, setError] = useState<string | null>(null);
   const autoChecked = useRef(false);
 
-  /** 检查更新 */
-  const handleCheck = useCallback(async () => {
+  /** 检查更新（silent=true 时自动检查失败不显示错误） */
+  const handleCheck = useCallback(async (silent = false) => {
     setStatus("checking");
     setError(null);
     setUpdateInfo(null);
@@ -116,8 +116,13 @@ function UpdateSection() {
         setStatus("up-to-date");
       }
     } catch (e) {
-      setError(String(e));
-      setStatus("error");
+      if (silent) {
+        // 自动检查失败时静默回退到 idle，不打扰用户
+        setStatus("idle");
+      } else {
+        setError(String(e));
+        setStatus("error");
+      }
     }
   }, [mirror]);
 
@@ -175,12 +180,12 @@ function UpdateSection() {
     }
   }, [mirror]);
 
-  /** 自动启动检查（延迟 3 秒，仅一次） */
+  /** 自动启动检查（延迟 3 秒，仅一次，失败静默） */
   useEffect(() => {
     if (autoChecked.current) return;
     autoChecked.current = true;
     const timer = setTimeout(() => {
-      handleCheck();
+      handleCheck(true);
     }, 3000);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -235,7 +240,7 @@ function UpdateSection() {
               variant="outline"
               size="sm"
               className="w-full"
-              onClick={handleCheck}
+              onClick={() => handleCheck()}
             >
               <RefreshCwIcon className="size-4 mr-2" />
               {t("update.checkUpdate")}
@@ -258,7 +263,7 @@ function UpdateSection() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleCheck}
+                onClick={() => handleCheck()}
               >
                 <RefreshCwIcon className="size-3.5 mr-1.5" />
                 {t("update.checkUpdate")}

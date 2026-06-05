@@ -260,7 +260,7 @@ const zhCN = {
     downloadInstall: "下载并安装",
     downloading: "正在下载更新...",
     installReady: "下载完成，即将重启...",
-    checkError: "检查更新失败",
+    checkError: "检查更新失败，请检查网络连接或切换镜像后重试",
     downloadError: "下载更新失败",
     retry: "重试",
   },

@@ -262,7 +262,7 @@ const ar: Translations = {
     downloadInstall: "تحميل وتثبيت",
     downloading: "جارٍ تحميل التحديث...",
     installReady: "اكتمل التحميل، جارٍ إعادة التشغيل...",
-    checkError: "فشل التحقق من التحديثات",
+    checkError: "فشل التحقق من التحديثات، تحقق من الشبكة أو جرّب مرآة أخرى",
     downloadError: "فشل تحميل التحديث",
     retry: "إعادة المحاولة",
   },

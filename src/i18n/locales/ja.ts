@@ -262,7 +262,7 @@ const ja: Translations = {
     downloadInstall: "ダウンロードしてインストール",
     downloading: "アップデートをダウンロード中...",
     installReady: "ダウンロード完了、再起動中...",
-    checkError: "アップデートの確認に失敗しました",
+    checkError: "アップデートの確認に失敗しました、ネットワークを確認するかミラーを切り替えてください",
     downloadError: "アップデートのダウンロードに失敗しました",
     retry: "再試行",
   },
