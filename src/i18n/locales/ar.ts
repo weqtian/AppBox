@@ -250,6 +250,22 @@ const ar: Translations = {
     extractFailed: "فشل استخراج الإطار",
     videoLoadError: "فشل تحميل الفيديو، قد لا تكون الصيغة مدعومة",
   },
+  update: {
+    title: "التحديث",
+    mirror: "مرآة التحميل",
+    mirrorDesc: "اختر مصدر تحميل التحديث، استخدم مرآة لتسريع التحميل",
+    mirrorDirect: "مباشر (GitHub)",
+    checkUpdate: "التحقق من التحديثات",
+    checking: "جارٍ التحقق من التحديثات...",
+    upToDate: "أنت على أحدث إصدار",
+    newVersion: "يتوفر إصدار جديد",
+    downloadInstall: "تحميل وتثبيت",
+    downloading: "جارٍ تحميل التحديث...",
+    installReady: "اكتمل التحميل، جارٍ إعادة التشغيل...",
+    checkError: "فشل التحقق من التحديثات",
+    downloadError: "فشل تحميل التحديث",
+    retry: "إعادة المحاولة",
+  },
 };
 
 export default ar;

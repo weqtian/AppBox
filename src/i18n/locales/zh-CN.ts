@@ -248,6 +248,22 @@ const zhCN = {
     extractFailed: "帧抓取失败",
     videoLoadError: "视频加载失败,可能格式不被支持",
   },
+  update: {
+    title: "更新",
+    mirror: "下载镜像",
+    mirrorDesc: "选择更新下载源，网络不佳时可使用镜像加速",
+    mirrorDirect: "直连 (GitHub)",
+    checkUpdate: "检查更新",
+    checking: "正在检查更新...",
+    upToDate: "已是最新版本",
+    newVersion: "发现新版本",
+    downloadInstall: "下载并安装",
+    downloading: "正在下载更新...",
+    installReady: "下载完成，即将重启...",
+    checkError: "检查更新失败",
+    downloadError: "下载更新失败",
+    retry: "重试",
+  },
 };
 
 export default zhCN;

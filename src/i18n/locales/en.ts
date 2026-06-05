@@ -250,6 +250,22 @@ const en: Translations = {
     extractFailed: "Frame extraction failed",
     videoLoadError: "Failed to load video, format may not be supported",
   },
+  update: {
+    title: "Update",
+    mirror: "Download Mirror",
+    mirrorDesc: "Select update download source, use a mirror for faster downloads",
+    mirrorDirect: "Direct (GitHub)",
+    checkUpdate: "Check for Updates",
+    checking: "Checking for updates...",
+    upToDate: "Already up to date",
+    newVersion: "New version available",
+    downloadInstall: "Download and Install",
+    downloading: "Downloading update...",
+    installReady: "Download complete, restarting...",
+    checkError: "Failed to check for updates",
+    downloadError: "Failed to download update",
+    retry: "Retry",
+  },
 };
 
 export default en;

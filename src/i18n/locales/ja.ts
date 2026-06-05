@@ -250,6 +250,22 @@ const ja: Translations = {
     extractFailed: "フレーム抽出に失敗しました",
     videoLoadError: "動画の読み込みに失敗しました、フォーマットがサポートされていない可能性があります",
   },
+  update: {
+    title: "アップデート",
+    mirror: "ダウンロードミラー",
+    mirrorDesc: "更新のダウンロード元を選択、ミラーで高速化",
+    mirrorDirect: "直接 (GitHub)",
+    checkUpdate: "アップデートを確認",
+    checking: "アップデートを確認中...",
+    upToDate: "最新バージョンです",
+    newVersion: "新しいバージョンがあります",
+    downloadInstall: "ダウンロードしてインストール",
+    downloading: "アップデートをダウンロード中...",
+    installReady: "ダウンロード完了、再起動中...",
+    checkError: "アップデートの確認に失敗しました",
+    downloadError: "アップデートのダウンロードに失敗しました",
+    retry: "再試行",
+  },
 };
 
 export default ja;

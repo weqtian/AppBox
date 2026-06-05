@@ -3,6 +3,127 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Emitter, Manager, WindowEvent,
 };
+use tauri_plugin_updater::UpdaterExt;
+
+/// 更新信息（返回给前端）
+#[derive(serde::Serialize)]
+struct UpdateInfo {
+    version: String,
+    body: Option<String>,
+    date: Option<String>,
+}
+
+/// 构建更新检查的 endpoint URL
+///
+/// 如果指定了镜像，将原始 GitHub URL 拼接到镜像前缀后面。
+fn build_endpoint(mirror: &Option<String>) -> String {
+    const LATEST_JSON_URL: &str =
+        "https://github.com/weqtian/AppBox/releases/latest/download/latest.json";
+    match mirror {
+        Some(m) if !m.is_empty() => {
+            format!("{}/{}", m.trim_end_matches('/'), LATEST_JSON_URL)
+        }
+        _ => LATEST_JSON_URL.to_string(),
+    }
+}
+
+/// 检查应用更新
+///
+/// 前端通过 `invoke("check_for_update", { mirror })` 调用。
+/// mirror 为 None 或空字符串时使用直连 GitHub。
+/// 返回 Some(UpdateInfo) 表示有可用更新，None 表示已是最新版本。
+#[tauri::command]
+async fn check_for_update(
+    app: tauri::AppHandle,
+    mirror: Option<String>,
+) -> Result<Option<UpdateInfo>, String> {
+    let endpoint = build_endpoint(&mirror);
+
+    let endpoint_url = url::Url::parse(&endpoint).map_err(|e| e.to_string())?;
+
+    let updater = app
+        .updater_builder()
+        .endpoints(vec![endpoint_url])
+        .map_err(|e| e.to_string())?
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let update = updater.check().await.map_err(|e| e.to_string())?;
+
+    match update {
+        Some(update) => Ok(Some(UpdateInfo {
+            version: update.version.clone(),
+            body: update.body.clone(),
+            date: update.date.map(|d| d.to_string()),
+        })),
+        None => Ok(None),
+    }
+}
+
+/// 执行应用更新（下载 + 安装 + 重启）
+///
+/// 前端通过 `invoke("perform_update", { mirror })` 调用。
+/// 通过 Tauri 事件向前端发送下载进度。
+/// 成功后自动重启应用。
+#[tauri::command]
+async fn perform_update(
+    app: tauri::AppHandle,
+    mirror: Option<String>,
+) -> Result<(), String> {
+    let endpoint = build_endpoint(&mirror);
+
+    let endpoint_url = url::Url::parse(&endpoint).map_err(|e| e.to_string())?;
+
+    let updater = app
+        .updater_builder()
+        .endpoints(vec![endpoint_url])
+        .map_err(|e| e.to_string())?
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let update = updater.check().await.map_err(|e| e.to_string())?;
+
+    let mut update = update.ok_or("No update available".to_string())?;
+
+    // 如果选择了镜像，重写下载 URL
+    if let Some(ref m) = mirror {
+        if !m.is_empty() {
+            let original_url = update.download_url.to_string();
+            let mirrored_url = format!("{}/{}", m.trim_end_matches('/'), original_url);
+            update.download_url = url::Url::parse(&mirrored_url).map_err(|e| e.to_string())?;
+        }
+    }
+
+    // 克隆 app handle，一个用于 on_chunk 闭包，一个用于 on_finish 闭包
+    let app_chunk = app.clone();
+    let app_finish = app.clone();
+    let mut first_chunk = true;
+
+    update
+        .download_and_install(
+            move |chunk_length, content_length| {
+                if first_chunk {
+                    first_chunk = false;
+                    let _ = app_chunk.emit(
+                        "update-download-started",
+                        serde_json::json!({ "contentLength": content_length }),
+                    );
+                }
+                let _ = app_chunk.emit(
+                    "update-download-progress",
+                    serde_json::json!({ "chunkLength": chunk_length }),
+                );
+            },
+            || {
+                let _ = app_finish.emit("update-download-finished", ());
+            },
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // 下载安装成功后重启应用
+    app.restart();
+}
 
 /// 处理退出选择命令
 ///
@@ -89,8 +210,22 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![execute_quit_choice, update_tray_menu])
+        .invoke_handler(tauri::generate_handler![
+            execute_quit_choice,
+            update_tray_menu,
+            check_for_update,
+            perform_update
+        ])
         .setup(|app| {
+            // 注册 updater 插件（仅桌面端）
+            #[cfg(desktop)]
+            {
+                app.handle()
+                    .plugin(tauri_plugin_updater::Builder::new().build())?;
+            }
+            // 注册 process 插件（提供 restart 功能）
+            app.handle().plugin(tauri_plugin_process::init())?;
+
             // 创建托盘菜单项（初始为英文，前端加载后会调用 update_tray_menu 更新）
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let about_item = MenuItem::with_id(app, "about", "About AppBox", true, None::<&str>)?;
