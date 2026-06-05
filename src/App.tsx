@@ -19,6 +19,8 @@ import ImageCompressorPage from "@/pages/ImageCompressorPage";
 import ImageFormatConverterPage from "@/pages/ImageFormatConverterPage";
 import JwtParserPage from "@/pages/JwtParserPage";
 import JsonFormatterPage from "@/pages/JsonFormatterPage";
+import Base64CoderPage from "@/pages/Base64CoderPage";
+import TimestampPage from "@/pages/TimestampPage";
 import VideoFrameExtractorPage from "@/pages/VideoFrameExtractorPage";
 import SettingsPage from "@/pages/SettingsPage";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,7 +37,7 @@ import {
   SidebarInset,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, BracesIcon, VideoIcon, SettingsIcon, BoxIcon } from "lucide-react";
+import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, BracesIcon, FileCodeIcon, ClockIcon, VideoIcon, SettingsIcon, BoxIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { I18nProvider, useTranslation, type Locale } from "@/i18n";
 import { QuitConfirmDialog, type QuitChoice } from "@/components/QuitConfirmDialog";
@@ -167,6 +169,26 @@ function App() {
                       <span>{t("sidebar.jsonFormatter")}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={activeTab === "base64"}
+                      onClick={() => setActiveTab("base64")}
+                      tooltip={t("sidebar.base64Coder")}
+                    >
+                      <FileCodeIcon />
+                      <span>{t("sidebar.base64Coder")}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={activeTab === "timestamp"}
+                      onClick={() => setActiveTab("timestamp")}
+                      tooltip={t("sidebar.timestamp")}
+                    >
+                      <ClockIcon />
+                      <span>{t("sidebar.timestamp")}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -234,6 +256,8 @@ function App() {
             {activeTab === "format" && <ImageFormatConverterPage />}
             {activeTab === "jwt" && <JwtParserPage />}
             {activeTab === "json" && <JsonFormatterPage />}
+            {activeTab === "base64" && <Base64CoderPage />}
+            {activeTab === "timestamp" && <TimestampPage />}
             {activeTab === "video" && <VideoFrameExtractorPage />}
             {activeTab === "settings" && <SettingsPage />}
           </main>
