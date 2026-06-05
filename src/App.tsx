@@ -18,6 +18,7 @@ import UUIDGeneratorPage from "@/pages/UUIDGeneratorPage";
 import ImageCompressorPage from "@/pages/ImageCompressorPage";
 import ImageFormatConverterPage from "@/pages/ImageFormatConverterPage";
 import JwtParserPage from "@/pages/JwtParserPage";
+import JsonFormatterPage from "@/pages/JsonFormatterPage";
 import VideoFrameExtractorPage from "@/pages/VideoFrameExtractorPage";
 import SettingsPage from "@/pages/SettingsPage";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,7 +35,7 @@ import {
   SidebarInset,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, VideoIcon, SettingsIcon, BoxIcon } from "lucide-react";
+import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, BracesIcon, VideoIcon, SettingsIcon, BoxIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { I18nProvider, useTranslation, type Locale } from "@/i18n";
 import { QuitConfirmDialog, type QuitChoice } from "@/components/QuitConfirmDialog";
@@ -156,6 +157,16 @@ function App() {
                       <span>{t("sidebar.jwtParser")}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={activeTab === "json"}
+                      onClick={() => setActiveTab("json")}
+                      tooltip={t("sidebar.jsonFormatter")}
+                    >
+                      <BracesIcon />
+                      <span>{t("sidebar.jsonFormatter")}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -222,6 +233,7 @@ function App() {
             {activeTab === "image" && <ImageCompressorPage />}
             {activeTab === "format" && <ImageFormatConverterPage />}
             {activeTab === "jwt" && <JwtParserPage />}
+            {activeTab === "json" && <JsonFormatterPage />}
             {activeTab === "video" && <VideoFrameExtractorPage />}
             {activeTab === "settings" && <SettingsPage />}
           </main>
