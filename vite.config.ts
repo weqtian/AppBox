@@ -2,13 +2,22 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import process from "process";
+import { readFileSync } from "fs";
 
+// 从 package.json 读取版本号
+const pkgVersion = JSON.parse(readFileSync("./package.json", "utf-8")).version;
+
+// Tauri 开发模式下通过此环境变量传递 host 地址
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig({
   plugins: [react(), tailwindcss()],
+
+  // 全局常量：注入应用版本号
+  define: {
+    __APP_VERSION__: JSON.stringify(pkgVersion),
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -36,4 +45,4 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
-}));
+});
