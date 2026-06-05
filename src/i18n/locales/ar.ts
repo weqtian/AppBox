@@ -91,9 +91,21 @@ const ar: Translations = {
   quitDialog: {
     title: "تأكيد الخروج",
     description: "ماذا تريد أن تفعل؟",
-    minimize: "تصغير إلى شريط المهام",
-    quit: "إنهاء",
+    minimize: "تصغير إلى شريط النظام",
+    quit: "إنهاء AppBox",
     cancel: "إلغاء",
+  },
+  aboutDialog: {
+    title: "حول AppBox",
+    description: "تطبيق أدوات سطح مكتب خفيف الوزن",
+    version: "الإصدار",
+    close: "إغلاق",
+  },
+  tray: {
+    showWindow: "إظهار النافذة",
+    about: "حول AppBox",
+    version: "الإصدار",
+    quit: "إنهاء",
   },
   jwt: {
     localOnly: "تحليل محلي 100%، لا يُرسل إلى الشبكة أبدًا",

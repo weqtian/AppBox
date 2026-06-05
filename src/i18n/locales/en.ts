@@ -92,8 +92,20 @@ const en: Translations = {
     title: "Confirm Exit",
     description: "What would you like to do?",
     minimize: "Minimize to Tray",
-    quit: "Quit",
+    quit: "Quit AppBox",
     cancel: "Cancel",
+  },
+  aboutDialog: {
+    title: "About AppBox",
+    description: "A lightweight desktop toolbox application",
+    version: "Version",
+    close: "Close",
+  },
+  tray: {
+    showWindow: "Show Window",
+    about: "About AppBox",
+    version: "Version",
+    quit: "Quit",
   },
   jwt: {
     localOnly: "100% local parsing, never uploaded to the network",

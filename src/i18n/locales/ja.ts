@@ -92,8 +92,20 @@ const ja: Translations = {
     title: "終了の確認",
     description: "どうしますか？",
     minimize: "トレイに最小化",
-    quit: "終了",
+    quit: "AppBox を終了",
     cancel: "キャンセル",
+  },
+  aboutDialog: {
+    title: "AppBox について",
+    description: "軽量デスクトップツールボックスアプリ",
+    version: "バージョン",
+    close: "閉じる",
+  },
+  tray: {
+    showWindow: "ウィンドウを表示",
+    about: "AppBox について",
+    version: "バージョン",
+    quit: "終了",
   },
   jwt: {
     localOnly: "100% ローカル解析、ネットワークに送信しません",

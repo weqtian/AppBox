@@ -89,6 +89,7 @@ AppBox/
 ├── components.json          # shadcn/ui 组件配置
 ├── package.json             # 前端依赖与脚本
 ├── CONTRIBUTING.md          # 开发规范文档
+├── CHANGELOG.md             # 开发日志（迭代记录）
 └── bun.lock                 # Bun 锁文件
 ```
 
@@ -266,3 +267,7 @@ await invoke("execute_quit_choice", { choice: "minimize" });
 ## 开发规范
 
 详见 [CONTRIBUTING.md](./CONTRIBUTING.md)，包含代码风格、提交规范、组件开发指南等。
+
+## 开发日志
+
+详见 [CHANGELOG.md](./CHANGELOG.md)，记录项目的所有功能迭代、BUG 修复和架构变更。新成员可通过阅读开发日志快速了解项目演进历程。

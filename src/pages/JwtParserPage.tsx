@@ -8,13 +8,15 @@
  * - 相对时间显示（支持国际化）
  * - 一键复制各段 JSON 内容
  *
+ * 布局：顶部提示栏 + 左右分栏（左：输入 / 右：解析结果）
+ *
  * @module pages/JwtParserPage
  */
 
 import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CopyIcon, XIcon, ShieldCheckIcon, AlertTriangleIcon } from "lucide-react";
+import { CopyIcon, XIcon, ShieldCheckIcon, AlertTriangleIcon, KeyRoundIcon } from "lucide-react";
 import { decodeJwt, formatTimestamp, isTimestampKey, type JwtResult, type RelativeTimeTexts } from "@/lib/jwt";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useTranslation, type TranslationKey } from "@/i18n";
@@ -27,15 +29,7 @@ import { useTranslation, type TranslationKey } from "@/i18n";
 type Theme = "red" | "blue" | "slate";
 
 /** 各主题的 Tailwind 类名映射 */
-const THEME: Record<
-  Theme,
-  {
-    border: string;
-    headerBg: string;
-    label: string;
-    body: string;
-  }
-> = {
+const THEME: Record<Theme, { border: string; headerBg: string; label: string; body: string }> = {
   red: {
     border: "border-red-200 dark:border-red-900/60",
     headerBg: "bg-red-50/70 dark:bg-red-950/30",
@@ -60,17 +54,9 @@ const THEME: Record<
 // 子组件
 // ============================================================
 
-/**
- * JWT 分段卡片（Header / Payload / Signature 各一个）
- */
+/** JWT 分段卡片 */
 function SectionCard({
-  theme,
-  label,
-  hint,
-  copyText,
-  copyTitle,
-  onCopy,
-  children,
+  theme, label, hint, copyText, copyTitle, onCopy, children,
 }: {
   theme: Theme;
   label: string;
@@ -85,19 +71,11 @@ function SectionCard({
     <div className={`rounded-lg border ${c.border} overflow-hidden`}>
       <div className={`flex items-center justify-between gap-2 px-3 py-2 ${c.headerBg}`}>
         <div className="min-w-0 flex items-baseline gap-2">
-          <span className={`text-xs font-bold tracking-wider uppercase ${c.label}`}>
-            {label}
-          </span>
+          <span className={`text-xs font-bold tracking-wider uppercase ${c.label}`}>{label}</span>
           {hint && <span className="text-[11px] text-muted-foreground truncate">{hint}</span>}
         </div>
-        <Button
-          size="icon-xs"
-          variant="ghost"
-          onClick={() => onCopy(copyText)}
-          title={copyTitle}
-          disabled={!copyText}
-        >
-          <CopyIcon />
+        <Button size="icon-xs" variant="ghost" onClick={() => onCopy(copyText)} title={copyTitle} disabled={!copyText}>
+          <CopyIcon className="size-3" />
         </Button>
       </div>
       <div className={`p-3 ${c.body}`}>{children}</div>
@@ -105,14 +83,9 @@ function SectionCard({
   );
 }
 
-/**
- * JSON 数据视图（带语法高亮和时间戳格式化）
- */
+/** JSON 数据视图（带语法高亮和时间戳格式化） */
 function JsonView({
-  data,
-  theme,
-  relativeTexts,
-  t,
+  data, theme, relativeTexts, t,
 }: {
   data: Record<string, unknown>;
   theme: Theme;
@@ -127,7 +100,6 @@ function JsonView({
       <pre className="text-sm font-mono whitespace-pre-wrap break-all rounded-md bg-background/60 dark:bg-background/40 p-3 leading-relaxed">
         {syntaxHighlight(json, theme)}
       </pre>
-      {/* 时间戳字段格式化显示 */}
       {timestampFields.length > 0 && (
         <div className="mt-3 space-y-1.5 border-t pt-3">
           {timestampFields.map(([key, value]) => {
@@ -167,23 +139,13 @@ function JsonView({
 // JSON 语法高亮
 // ============================================================
 
-/**
- * 对 JSON 字符串进行语法高亮渲染
- *
- * 为 key、string value、number、boolean/null 着不同颜色。
- */
 function syntaxHighlight(json: string, theme: Theme): React.ReactNode[] {
   const lines = json.split("\n");
   const keyColor =
-    theme === "red"
-      ? "text-red-600 dark:text-red-400"
-      : theme === "blue"
-        ? "text-blue-600 dark:text-blue-400"
-        : "text-foreground";
-  const stringColor =
-    theme === "red"
-      ? "text-amber-700 dark:text-amber-400"
-      : "text-emerald-700 dark:text-emerald-400";
+    theme === "red" ? "text-red-600 dark:text-red-400"
+      : theme === "blue" ? "text-blue-600 dark:text-blue-400"
+      : "text-foreground";
+  const stringColor = theme === "red" ? "text-amber-700 dark:text-amber-400" : "text-emerald-700 dark:text-emerald-400";
   const numberColor = "text-purple-600 dark:text-purple-400";
   const boolNullColor = "text-orange-600 dark:text-orange-400";
 
@@ -203,28 +165,14 @@ function syntaxHighlight(json: string, theme: Theme): React.ReactNode[] {
   });
 }
 
-/** 为 JSON value 部分着色 */
-function colorizeValue(
-  value: string,
-  stringColor: string,
-  numberColor: string,
-  boolNullColor: string
-): React.ReactNode {
+function colorizeValue(value: string, stringColor: string, numberColor: string, boolNullColor: string): React.ReactNode {
   const trimmed = value.replace(/,\s*$/, "");
   const comma = value.endsWith(",") ? "," : "";
 
-  if (trimmed.startsWith('"')) {
-    return <span className={stringColor}>{trimmed}</span>;
-  }
-  if (trimmed === "true" || trimmed === "false") {
-    return <span className={boolNullColor}>{trimmed}{comma}</span>;
-  }
-  if (trimmed === "null") {
-    return <span className={boolNullColor}>{trimmed}{comma}</span>;
-  }
-  if (!isNaN(Number(trimmed)) && trimmed !== "") {
-    return <span className={numberColor}>{trimmed}{comma}</span>;
-  }
+  if (trimmed.startsWith('"')) return <span className={stringColor}>{trimmed}</span>;
+  if (trimmed === "true" || trimmed === "false") return <span className={boolNullColor}>{trimmed}{comma}</span>;
+  if (trimmed === "null") return <span className={boolNullColor}>{trimmed}{comma}</span>;
+  if (!isNaN(Number(trimmed)) && trimmed !== "") return <span className={numberColor}>{trimmed}{comma}</span>;
   return <>{value}</>;
 }
 
@@ -248,7 +196,7 @@ export default function JwtParserPage() {
     daysAgo: t("jwt.relDaysAgo"),
   }), [t]);
 
-  /** 解码 JWT，传入国际化的错误消息 */
+  /** 解码 JWT */
   const result: JwtResult = useMemo(
     () => decodeJwt(token, t("jwt.formatError"), t("jwt.parseErrorPrefix")),
     [token, t]
@@ -263,34 +211,41 @@ export default function JwtParserPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 顶部安全提示 */}
-      <div className="flex items-center gap-2 px-4 pt-4 pb-2 text-xs text-muted-foreground">
-        <ShieldCheckIcon className="h-3.5 w-3.5 text-emerald-500" />
-        <span>{t("jwt.localOnly")}</span>
-      </div>
-      {/* 前缀剥离提示 */}
-      {result.strippedPrefix && (
-        <div className="flex items-center gap-2 px-4 pb-2 text-xs text-amber-600 dark:text-amber-400">
-          <AlertTriangleIcon className="h-3.5 w-3.5 shrink-0" />
-          <span>{t("jwt.strippedPrefix")}&nbsp;<code className="font-mono font-semibold bg-amber-100 dark:bg-amber-900/40 px-1 rounded">{result.strippedPrefix}</code></span>
-        </div>
-      )}
-
-      {/* 主工作区 - 双栏布局 */}
-      <div className="flex flex-1 min-h-0 gap-0 px-4 pb-4">
-        {/* 左栏 - 输入区 */}
-        <div className="w-[45%] flex flex-col gap-2 min-h-0">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">{t("jwt.tokenInput")}</h2>
-            {token && (
-              <Button size="sm" variant="ghost" onClick={handleClear} className="h-7 text-xs">
-                <XIcon className="h-3 w-3" />
-                {t("jwt.clear")}
-              </Button>
-            )}
+      {/* ============================================================ */}
+      {/* 顶部栏 */}
+      {/* ============================================================ */}
+      <div className="border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <KeyRoundIcon className="size-4 text-primary shrink-0" />
+            <span className="text-sm font-semibold">{t("jwt.tokenInput")}</span>
+            <ShieldCheckIcon className="size-3 text-emerald-500" />
+            <span className="text-[11px] text-muted-foreground">{t("jwt.localOnly")}</span>
           </div>
+          {token && (
+            <Button size="xs" variant="ghost" onClick={handleClear}>
+              <XIcon className="size-3" />
+              {t("jwt.clear")}
+            </Button>
+          )}
+        </div>
+        {/* 前缀剥离提示 */}
+        {result.strippedPrefix && (
+          <div className="flex items-center gap-2 px-4 pb-2 text-xs text-amber-600 dark:text-amber-400">
+            <AlertTriangleIcon className="size-3 shrink-0" />
+            <span>{t("jwt.strippedPrefix")}&nbsp;<code className="font-mono font-semibold bg-amber-100 dark:bg-amber-900/40 px-1 rounded">{result.strippedPrefix}</code></span>
+          </div>
+        )}
+      </div>
+
+      {/* ============================================================ */}
+      {/* 主工作区：左右分栏 */}
+      {/* ============================================================ */}
+      <div className="flex flex-1 min-h-0">
+        {/* 左栏 - 输入区 */}
+        <div className="w-[42%] flex flex-col min-h-0 border-e">
           <textarea
-            className="flex-1 w-full resize-none rounded-lg border border-input bg-background px-3 py-2.5 text-sm font-mono placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+            className="flex-1 w-full resize-none px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/40 focus-visible:outline-none bg-transparent"
             placeholder={t("jwt.placeholder")}
             value={token}
             onChange={(e) => setToken(e.target.value)}
@@ -299,64 +254,72 @@ export default function JwtParserPage() {
         </div>
 
         {/* 右栏 - 输出区 */}
-        <div className="w-[55%] flex flex-col gap-2 min-h-0 ps-3">
-          <h2 className="text-sm font-semibold">{t("jwt.result")}</h2>
+        <div className="w-[58%] flex flex-col min-h-0">
+          {/* 结果标题 */}
+          <div className="px-4 py-2 border-b">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {t("jwt.result")}
+            </span>
+          </div>
 
-          {!token.trim() ? (
-            <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground/60">
-              {t("jwt.emptyHint")}
-            </div>
-          ) : !result.isValid ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="rounded-lg border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30 px-4 py-3 text-sm text-red-600 dark:text-red-400 max-w-md text-center">
-                <p className="font-medium mb-1">{t("jwt.invalid")}</p>
-                {result.error && <p className="text-xs opacity-80">{result.error}</p>}
+          {/* 结果内容 */}
+          <div className="flex-1 min-h-0">
+            {!token.trim() ? (
+              <div className="flex items-center justify-center h-full text-sm text-muted-foreground/40">
+                {t("jwt.emptyHint")}
               </div>
-            </div>
-          ) : (
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="space-y-3 pe-2">
-                {result.header && (
-                  <SectionCard
-                    theme="red"
-                    label={t("jwt.header")}
-                    hint={t("jwt.headerHint")}
-                    copyText={JSON.stringify(result.header, null, 2)}
-                    copyTitle={t("jwt.copyHeader")}
-                    onCopy={handleCopy}
-                  >
-                    <JsonView data={result.header} theme="red" relativeTexts={relativeTexts} t={t} />
-                  </SectionCard>
-                )}
-                {result.payload && (
-                  <SectionCard
-                    theme="blue"
-                    label={t("jwt.payload")}
-                    hint={t("jwt.payloadHint")}
-                    copyText={JSON.stringify(result.payload, null, 2)}
-                    copyTitle={t("jwt.copyPayload")}
-                    onCopy={handleCopy}
-                  >
-                    <JsonView data={result.payload} theme="blue" relativeTexts={relativeTexts} t={t} />
-                  </SectionCard>
-                )}
-                {result.signature && (
-                  <SectionCard
-                    theme="slate"
-                    label={t("jwt.signature")}
-                    hint={t("jwt.signatureHint")}
-                    copyText={result.signature}
-                    copyTitle={t("jwt.copySignature")}
-                    onCopy={handleCopy}
-                  >
-                    <pre className="text-sm font-mono whitespace-pre-wrap break-all rounded-md bg-background/60 dark:bg-background/40 p-3 leading-relaxed text-muted-foreground">
-                      {result.signature}
-                    </pre>
-                  </SectionCard>
-                )}
+            ) : !result.isValid ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="rounded-lg border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30 px-4 py-3 text-sm text-red-600 dark:text-red-400 max-w-md text-center">
+                  <p className="font-medium mb-1">{t("jwt.invalid")}</p>
+                  {result.error && <p className="text-xs opacity-80">{result.error}</p>}
+                </div>
               </div>
-            </ScrollArea>
-          )}
+            ) : (
+              <ScrollArea className="h-full">
+                <div className="space-y-3 p-4 pe-6">
+                  {result.header && (
+                    <SectionCard
+                      theme="red"
+                      label={t("jwt.header")}
+                      hint={t("jwt.headerHint")}
+                      copyText={JSON.stringify(result.header, null, 2)}
+                      copyTitle={t("jwt.copyHeader")}
+                      onCopy={handleCopy}
+                    >
+                      <JsonView data={result.header} theme="red" relativeTexts={relativeTexts} t={t} />
+                    </SectionCard>
+                  )}
+                  {result.payload && (
+                    <SectionCard
+                      theme="blue"
+                      label={t("jwt.payload")}
+                      hint={t("jwt.payloadHint")}
+                      copyText={JSON.stringify(result.payload, null, 2)}
+                      copyTitle={t("jwt.copyPayload")}
+                      onCopy={handleCopy}
+                    >
+                      <JsonView data={result.payload} theme="blue" relativeTexts={relativeTexts} t={t} />
+                    </SectionCard>
+                  )}
+                  {result.signature && (
+                    <SectionCard
+                      theme="slate"
+                      label={t("jwt.signature")}
+                      hint={t("jwt.signatureHint")}
+                      copyText={result.signature}
+                      copyTitle={t("jwt.copySignature")}
+                      onCopy={handleCopy}
+                    >
+                      <pre className="text-sm font-mono whitespace-pre-wrap break-all rounded-md bg-background/60 dark:bg-background/40 p-3 leading-relaxed text-muted-foreground">
+                        {result.signature}
+                      </pre>
+                    </SectionCard>
+                  )}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
         </div>
       </div>
     </div>

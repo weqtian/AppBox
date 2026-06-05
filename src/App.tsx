@@ -5,6 +5,8 @@
  * - 左侧边栏：工具分组导航（数据工具 / 图片工具）+ 语言切换
  * - 右侧内容区：根据活跃标签页渲染对应的工具页面
  * - 退出确认对话框：拦截窗口关闭事件
+ * - 系统托盘菜单国际化：语言切换时同步更新托盘菜单文本
+ * - 关于对话框：通过系统托盘"关于"菜单触发
  *
  * 导航采用条件渲染（非 React Router），各页面组件在切换时重新挂载。
  *
@@ -38,12 +40,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, VideoIcon } from "lucide-react";
+import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, VideoIcon, BoxIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
 import { QuitConfirmDialog, type QuitChoice } from "@/components/QuitConfirmDialog";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
+
+/**
+ * 更新系统托盘菜单的国际化文本
+ *
+ * 调用 Rust 后端的 update_tray_menu 命令，
+ * 将前端的翻译文本同步到系统托盘菜单。
+ */
+async function syncTrayMenu(_locale: Locale, t: (key: string) => string) {
+  try {
+    await invoke("update_tray_menu", {
+      showText: t("tray.showWindow"),
+      aboutText: `${t("tray.about")} (v${__APP_VERSION__})`,
+      quitText: t("tray.quit"),
+    });
+  } catch {
+    // 纯浏览器环境下调用会失败，静默忽略
+  }
+}
 
 /**
  * 主应用组件
@@ -55,6 +84,7 @@ function App() {
   const { t, locale, setLocale, dir } = useTranslation();
   const [activeTab, setActiveTab] = useState("url");
   const [showQuitDialog, setShowQuitDialog] = useState(false);
+  const [showAboutDialog, setShowAboutDialog] = useState(false);
 
   // 监听 Rust 后端发送的退出请求事件（窗口关闭时触发）
   useEffect(() => {
@@ -66,6 +96,22 @@ function App() {
       unlisten.then((fn) => fn());
     };
   }, []);
+
+  // 监听系统托盘"关于"事件
+  useEffect(() => {
+    const appWindow = getCurrentWindow();
+    const unlisten = appWindow.listen<string>("show-about", () => {
+      setShowAboutDialog(true);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  // 语言切换时同步更新系统托盘菜单文本
+  useEffect(() => {
+    syncTrayMenu(locale, t as (key: string) => string);
+  }, [locale, t]);
 
   /** 处理退出对话框的用户选择 */
   const handleQuitChoice = useCallback((choice: QuitChoice) => {
@@ -192,7 +238,52 @@ function App() {
         onOpenChange={setShowQuitDialog}
         onChoice={handleQuitChoice}
       />
+      {/* 关于对话框 */}
+      {showAboutDialog && (
+        <AboutDialog open={showAboutDialog} onOpenChange={setShowAboutDialog} />
+      )}
     </TooltipProvider>
+  );
+}
+
+/**
+ * 关于对话框
+ *
+ * 显示应用名称、图标、版本号和简介。
+ * 通过系统托盘菜单的"关于"选项触发。
+ */
+function AboutDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { t } = useTranslation();
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogTrigger asChild>
+        <span className="hidden" />
+      </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-80 gap-0 px-7 pt-7 pb-6">
+        <AlertDialogHeader className="text-center sm:text-center gap-1 items-center">
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 text-primary mb-2">
+            <BoxIcon className="size-7" />
+          </div>
+          <AlertDialogTitle className="text-base">
+            {t("aboutDialog.title")}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs">
+            {t("aboutDialog.description")}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="mt-5 text-center text-xs text-muted-foreground">
+          {t("aboutDialog.version")}：v{__APP_VERSION__}
+        </div>
+
+        <div className="mt-5">
+          <AlertDialogCancel className="w-full h-9">
+            {t("aboutDialog.close")}
+          </AlertDialogCancel>
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

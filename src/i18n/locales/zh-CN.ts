@@ -89,9 +89,21 @@ const zhCN = {
   quitDialog: {
     title: "确认退出",
     description: "您希望如何处理？",
-    minimize: "最小化到任务栏",
-    quit: "退出程序",
+    minimize: "最小化到系统托盘",
+    quit: "退出 AppBox",
     cancel: "取消",
+  },
+  aboutDialog: {
+    title: "关于 AppBox",
+    description: "一款轻量级桌面工具箱应用",
+    version: "版本",
+    close: "关闭",
+  },
+  tray: {
+    showWindow: "显示主窗口",
+    about: "关于 AppBox",
+    version: "版本",
+    quit: "退出",
   },
   jwt: {
     localOnly: "100% 本地解析，绝不上传网络",
