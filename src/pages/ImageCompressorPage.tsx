@@ -1,3 +1,16 @@
+/**
+ * 图片压缩页面
+ *
+ * 提供单张图片的压缩功能，支持：
+ * - 调整压缩质量（10%~100%）
+ * - 选择输出格式（JPEG / PNG / WebP）
+ * - 实时预览原图与压缩后的对比
+ * - 显示压缩率和文件大小变化
+ * - 拖拽或点击上传图片
+ *
+ * @module pages/ImageCompressorPage
+ */
+
 import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardAction } from "@/components/ui/card";
@@ -21,104 +34,129 @@ import {
 import { copyToClipboard } from "@/lib/clipboard";
 import { saveFile } from "@/lib/save-file";
 import { useTranslation } from "@/i18n";
+import { formatSize, loadImageFile, createDragHandlers } from "@/lib/image-utils";
 
+// ============================================================
+// 类型与常量
+// ============================================================
+
+/** 源图片信息 */
 interface ImageInfo {
+  /** 原始文件 */
   file: File;
+  /** Object URL（用于预览，需手动释放） */
   url: string;
+  /** 图片宽度（像素） */
   width: number;
+  /** 图片高度（像素） */
   height: number;
 }
 
+/** 压缩结果 */
 interface CompressedResult {
+  /** 压缩后的 Blob 数据 */
   blob: Blob;
+  /** Object URL（用于预览，需手动释放） */
   url: string;
+  /** 输出宽度 */
   width: number;
+  /** 输出高度 */
   height: number;
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-}
-
+/** 计算压缩率（正数表示节省，负数表示增大） */
 function getCompressionRatio(original: number, compressed: number): number {
   if (original === 0) return 0;
   return Math.round((1 - compressed / original) * 100);
 }
 
+/** 允许上传的图片 MIME 类型 */
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/bmp"];
+
+/** 输出格式选项 */
 const OUTPUT_FORMATS = [
   { value: "image/jpeg", label: "JPEG" },
   { value: "image/png", label: "PNG" },
   { value: "image/webp", label: "WebP" },
 ];
 
+// ============================================================
+// 页面组件
+// ============================================================
+
 export default function ImageCompressorPage() {
   const { t } = useTranslation();
+
+  // --- 状态 ---
   const [source, setSource] = useState<ImageInfo | null>(null);
   const [result, setResult] = useState<CompressedResult | null>(null);
   const [quality, setQuality] = useState(80);
   const [outputFormat, setOutputFormat] = useState("image/webp");
   const [isCompressing, setIsCompressing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // --- Refs ---
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
 
-  const loadImage = useCallback((file: File) => {
+  // --- 拖拽处理 ---
+  const { handleDragOver, handleDragLeave, removeHighlight } = createDragHandlers(dropRef);
+
+  /** 加载图片文件并设置源 */
+  const loadImage = useCallback(async (file: File) => {
     if (!ACCEPTED_TYPES.includes(file.type)) return;
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      setSource({ file, url, width: img.naturalWidth, height: img.naturalHeight });
-      setResult(null);
-    };
-    img.src = url;
+    const loaded = await loadImageFile(file);
+    setSource({ file, ...loaded });
+    setResult(null);
+    setError(null);
   }, []);
 
+  /** 文件选择事件 */
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) loadImage(file);
     e.target.value = "";
   };
 
+  /** 拖拽放下事件 */
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    async (e: React.DragEvent) => {
       e.preventDefault();
-      dropRef.current?.classList.remove("border-primary", "bg-primary/5");
+      removeHighlight();
       const file = e.dataTransfer.files?.[0];
       if (file) loadImage(file);
     },
-    [loadImage]
+    [loadImage, removeHighlight]
   );
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    dropRef.current?.classList.add("border-primary", "bg-primary/5");
-  };
-
-  const handleDragLeave = () => {
-    dropRef.current?.classList.remove("border-primary", "bg-primary/5");
-  };
-
+  /** 执行压缩 */
   const compress = useCallback(async () => {
     if (!source) return;
     setIsCompressing(true);
+    setError(null);
 
     try {
       const img = new Image();
       img.src = source.url;
 
-      await new Promise((resolve) => {
+      // 等待图片加载完成
+      await new Promise((resolve, reject) => {
         if (img.complete) resolve(undefined);
-        else img.onload = resolve;
+        else {
+          img.onload = resolve;
+          img.onerror = reject;
+        }
       });
 
       const canvas = document.createElement("canvas");
       canvas.width = source.width;
       canvas.height = source.height;
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("无法创建 Canvas 上下文");
+      }
 
-      // 对于 JPEG，先填充白色背景（避免透明变黑）
+      // JPEG 不支持透明，填充白色背景避免透明区域变黑
       if (outputFormat === "image/jpeg") {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -126,13 +164,14 @@ export default function ImageCompressorPage() {
 
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
+      // PNG 不支持质量参数
       const q = outputFormat === "image/png" ? undefined : quality / 100;
 
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
           (b) => {
             if (b) resolve(b);
-            else reject(new Error("压缩失败"));
+            else reject(new Error(t("imageCompressor.compressing")));
           },
           outputFormat,
           q
@@ -142,12 +181,14 @@ export default function ImageCompressorPage() {
       const url = URL.createObjectURL(blob);
       setResult({ blob, url, width: canvas.width, height: canvas.height });
     } catch (err) {
-      console.error("压缩出错:", err);
+      // 向用户展示错误信息而非静默忽略
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsCompressing(false);
     }
-  }, [source, quality, outputFormat]);
+  }, [source, quality, outputFormat, t]);
 
+  /** 下载压缩结果 */
   const handleDownload = async () => {
     if (!result || !source) return;
     const ext = outputFormat.split("/")[1];
@@ -155,6 +196,7 @@ export default function ImageCompressorPage() {
     await saveFile(result.blob, name);
   };
 
+  /** 复制压缩信息到剪贴板 */
   const handleCopySizeInfo = async () => {
     if (!source || !result) return;
     const ratio = getCompressionRatio(source.file.size, result.blob.size);
@@ -162,11 +204,13 @@ export default function ImageCompressorPage() {
     await copyToClipboard(info);
   };
 
+  /** 清除图片和结果 */
   const handleClear = () => {
     if (source?.url) URL.revokeObjectURL(source.url);
     if (result?.url) URL.revokeObjectURL(result.url);
     setSource(null);
     setResult(null);
+    setError(null);
   };
 
   const compressionRatio = source && result
@@ -175,6 +219,13 @@ export default function ImageCompressorPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
+      {/* 错误提示 */}
+      {error && (
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">
+          {error}
+        </div>
+      )}
+
       {/* 上传区域 */}
       {!source ? (
         <div

@@ -2,7 +2,7 @@
 
 简体中文 | **[English](./README_EN.md)**
 
-基于 **Tauri 2 + React 19 + TypeScript + Vite 7** 的跨平台桌面工具箱应用，提供 URL 编解码、UUID 生成、JWT 解析、图片压缩、图片格式转换等常用开发工具。
+基于 **Tauri 2 + React 19 + TypeScript + Vite 7** 的跨平台桌面工具箱应用，提供 URL 编解码、UUID 生成、JWT 解析、图片压缩、图片格式转换、视频截帧等常用开发工具。
 
 ## 功能特性
 
@@ -13,6 +13,7 @@
 | JWT 解析 | 实时解析 JWT Token，自动剥离常见前缀，颜色高亮 Header/Payload/Signature，时间戳字段格式化显示 |
 | 图片压缩 | 调整质量与输出格式压缩图片，实时预览压缩效果 |
 | 图片格式转换 | 批量转换图片格式（JPEG/PNG/WebP/AVIF/BMP），支持拖拽上传与批量下载 |
+| 视频截帧 | 加载视频文件，精确到帧地定位并截取为 JPEG/PNG 图片 |
 
 ### 通用特性
 
@@ -22,6 +23,8 @@
 - **文件保存**：通过 Tauri 原生对话框选择保存路径
 - **拖拽上传**：图片工具支持拖拽文件上传
 - **响应式布局**：适配不同窗口尺寸
+- **系统托盘**：支持最小化到系统托盘，左键点击恢复窗口
+- **退出确认**：关闭窗口时弹出确认对话框，防止误操作
 
 ## 技术栈
 
@@ -43,25 +46,28 @@
 AppBox/
 ├── public/                  # 静态资源（SVG图标等）
 ├── src/                     # 前端源码
-│   ├── assets/              # React组件引用的资源
 │   ├── components/          # 组件目录
-│   │   └── ui/              # shadcn/ui 基础组件（15个）
+│   │   ├── ui/              # shadcn/ui 基础组件（自动生成）
+│   │   └── QuitConfirmDialog.tsx  # 退出确认对话框
 │   ├── hooks/               # 自定义 Hooks
 │   │   └── use-mobile.ts    # 移动端检测
 │   ├── i18n/                # 国际化
 │   │   ├── index.tsx        # I18nProvider 与 useTranslation
 │   │   └── locales/         # 语言文件（zh-CN/en/ja/ar）
-│   ├── lib/                 # 工具库
+│   ├── lib/                 # 工具库（纯函数）
 │   │   ├── clipboard.ts     # 剪贴板操作（Tauri优先+浏览器回退）
 │   │   ├── jwt.ts           # JWT 解码与时间戳格式化
+│   │   ├── image-utils.ts   # 图片处理共享工具（格式化大小、加载、拖拽）
 │   │   ├── save-file.ts     # 文件保存（Tauri对话框+浏览器下载回退）
-│   │   └── utils.ts         # 通用工具函数
+│   │   ├── utils.ts         # Tailwind 类名合并工具
+│   │   └── video.ts         # 视频处理工具（路径转换、时间格式化）
 │   ├── pages/               # 页面组件
-│   │   ├── URLCoderPage.tsx          # URL 编解码
-│   │   ├── UUIDGeneratorPage.tsx     # UUID 生成器
-│   │   ├── JwtParserPage.tsx         # JWT 解析
-│   │   ├── ImageCompressorPage.tsx   # 图片压缩
-│   │   └── ImageFormatConverterPage.tsx # 图片格式转换
+│   │   ├── URLCoderPage.tsx            # URL 编解码
+│   │   ├── UUIDGeneratorPage.tsx       # UUID 生成器
+│   │   ├── JwtParserPage.tsx           # JWT 解析
+│   │   ├── ImageCompressorPage.tsx     # 图片压缩
+│   │   ├── ImageFormatConverterPage.tsx # 图片格式转换
+│   │   └── VideoFrameExtractorPage.tsx # 视频截帧
 │   ├── App.tsx              # 主应用组件（侧边栏导航+页面路由）
 │   ├── App.css              # 全局样式与 Tailwind 配置
 │   ├── main.tsx             # React 入口文件
@@ -71,7 +77,7 @@ AppBox/
 │   │   └── default.json     # 默认窗口权限声明
 │   ├── icons/               # 应用图标（各尺寸）
 │   ├── src/
-│   │   ├── lib.rs           # Tauri 插件注册与应用构建
+│   │   ├── lib.rs           # Tauri 插件注册、系统托盘与窗口管理
 │   │   └── main.rs          # Rust 入口
 │   ├── Cargo.toml           # Rust 依赖配置
 │   ├── build.rs             # Tauri 构建脚本
@@ -82,6 +88,7 @@ AppBox/
 ├── tsconfig.node.json       # TypeScript Node 配置（Vite专用）
 ├── components.json          # shadcn/ui 组件配置
 ├── package.json             # 前端依赖与脚本
+├── CONTRIBUTING.md          # 开发规范文档
 └── bun.lock                 # Bun 锁文件
 ```
 
@@ -123,6 +130,12 @@ bun run tauri build
 
 该命令会先执行 TypeScript 类型检查与 Vite 前端打包，然后编译 Rust 后端并生成安装包。
 
+### 类型检查
+
+```bash
+npx tsc --noEmit
+```
+
 ## npm scripts 说明
 
 | 命令 | 说明 |
@@ -138,14 +151,16 @@ bun run tauri build
 
 - 入口文件 `src/main.tsx` 使用 `ReactDOM.createRoot` 渲染应用
 - 组件使用 React 19 的函数式组件 + Hooks 模式
-- 侧边栏导航切换页面（`Sidebar` + 条件渲染）
+- 侧边栏导航切换页面（`Sidebar` + 条件渲染），RTL 模式自动翻转侧边栏方向
 - UI 组件基于 shadcn/ui（radix-nova 风格），通过 Tailwind CSS 4 样式化
 - 国际化通过自研 `I18nProvider` + `useTranslation` Hook 实现，支持嵌套 key 翻译
 - 图片处理基于 Canvas API，优先使用 `createImageBitmap` + `OffscreenCanvas` 高性能方案
+- 图片处理共享逻辑（格式化大小、加载文件、拖拽处理）提取到 `src/lib/image-utils.ts`
+- JWT 时间戳格式化支持国际化（相对时间文本通过参数传入）
 
 ### 后端（Rust + Tauri）
 
-- `src-tauri/src/lib.rs` 注册 Tauri 插件并构建应用
+- `src-tauri/src/lib.rs` 注册 Tauri 插件、创建系统托盘、设置窗口关闭拦截
 - `src-tauri/src/main.rs` 为 Rust 入口，调用 `appbox_lib::run()`
 - 已集成插件：
   - `tauri-plugin-opener` — 打开链接/文件
@@ -153,6 +168,7 @@ bun run tauri build
   - `tauri-plugin-dialog` — 原生文件对话框
   - `tauri-plugin-fs` — 文件系统写入
 - Rust 依赖：`tauri`、`serde`、`serde_json`
+- 安全处理：使用模式匹配替代 `unwrap()`，避免运行时 panic
 
 ### 前后端交互
 
@@ -168,6 +184,10 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 const filePath = await save({ defaultPath: fileName });
 if (filePath) await writeFile(filePath, data);
+
+// 退出选择（自定义命令）
+import { invoke } from "@tauri-apps/api/core";
+await invoke("execute_quit_choice", { choice: "minimize" });
 ```
 
 所有系统交互均提供浏览器回退方案，确保纯浏览器环境下也能运行。
@@ -179,6 +199,8 @@ if (filePath) await writeFile(filePath, data);
 - 阿拉伯语自动切换 RTL 布局（`document.documentElement.dir`）
 - 语言偏好持久化到 `localStorage`
 - 翻译 key 支持嵌套点号路径（如 `urlCoder.input`）
+- `TranslationKey` 类型提供编译时安全检查
+- 动态文本（如相对时间）使用参数化方式支持国际化
 
 ### 权限与安全
 
@@ -240,3 +262,7 @@ if (filePath) await writeFile(filePath, data);
 - [Vite 官方文档](https://vite.dev/)
 - [shadcn/ui](https://ui.shadcn.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
+
+## 开发规范
+
+详见 [CONTRIBUTING.md](./CONTRIBUTING.md)，包含代码风格、提交规范、组件开发指南等。

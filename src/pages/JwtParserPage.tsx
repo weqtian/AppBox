@@ -1,13 +1,32 @@
-import { useState, useMemo } from "react";
+/**
+ * JWT 解析页面
+ *
+ * 提供 JWT Token 的实时解析功能，支持：
+ * - 自动剥离 Bearer/Basic/Token/JWT 等前缀
+ * - Header/Payload/Signature 三段颜色高亮显示
+ * - 时间戳字段（exp/iat/nbf/auth_time）自动格式化
+ * - 相对时间显示（支持国际化）
+ * - 一键复制各段 JSON 内容
+ *
+ * @module pages/JwtParserPage
+ */
+
+import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CopyIcon, XIcon, ShieldCheckIcon, AlertTriangleIcon } from "lucide-react";
-import { decodeJwt, formatTimestamp, isTimestampKey, type JwtResult } from "@/lib/jwt";
+import { decodeJwt, formatTimestamp, isTimestampKey, type JwtResult, type RelativeTimeTexts } from "@/lib/jwt";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useTranslation, type TranslationKey } from "@/i18n";
 
+// ============================================================
+// 主题配色
+// ============================================================
+
+/** 三段 JWT 的可视化主题色 */
 type Theme = "red" | "blue" | "slate";
 
+/** 各主题的 Tailwind 类名映射 */
 const THEME: Record<
   Theme,
   {
@@ -37,6 +56,13 @@ const THEME: Record<
   },
 };
 
+// ============================================================
+// 子组件
+// ============================================================
+
+/**
+ * JWT 分段卡片（Header / Payload / Signature 各一个）
+ */
 function SectionCard({
   theme,
   label,
@@ -79,13 +105,18 @@ function SectionCard({
   );
 }
 
+/**
+ * JSON 数据视图（带语法高亮和时间戳格式化）
+ */
 function JsonView({
   data,
   theme,
+  relativeTexts,
   t,
 }: {
   data: Record<string, unknown>;
   theme: Theme;
+  relativeTexts: RelativeTimeTexts;
   t: (key: TranslationKey) => string;
 }) {
   const json = JSON.stringify(data, null, 2);
@@ -96,10 +127,11 @@ function JsonView({
       <pre className="text-sm font-mono whitespace-pre-wrap break-all rounded-md bg-background/60 dark:bg-background/40 p-3 leading-relaxed">
         {syntaxHighlight(json, theme)}
       </pre>
+      {/* 时间戳字段格式化显示 */}
       {timestampFields.length > 0 && (
         <div className="mt-3 space-y-1.5 border-t pt-3">
           {timestampFields.map(([key, value]) => {
-            const ts = formatTimestamp(value);
+            const ts = formatTimestamp(value, relativeTexts);
             const keyLabel = (() => {
               switch (key) {
                 case "exp": return t("jwt.exp");
@@ -131,6 +163,15 @@ function JsonView({
   );
 }
 
+// ============================================================
+// JSON 语法高亮
+// ============================================================
+
+/**
+ * 对 JSON 字符串进行语法高亮渲染
+ *
+ * 为 key、string value、number、boolean/null 着不同颜色。
+ */
 function syntaxHighlight(json: string, theme: Theme): React.ReactNode[] {
   const lines = json.split("\n");
   const keyColor =
@@ -162,6 +203,7 @@ function syntaxHighlight(json: string, theme: Theme): React.ReactNode[] {
   });
 }
 
+/** 为 JSON value 部分着色 */
 function colorizeValue(
   value: string,
   stringColor: string,
@@ -186,18 +228,38 @@ function colorizeValue(
   return <>{value}</>;
 }
 
+// ============================================================
+// 页面主体
+// ============================================================
+
 export default function JwtParserPage() {
   const { t } = useTranslation();
   const [token, setToken] = useState("");
 
-  const result: JwtResult = useMemo(() => decodeJwt(token), [token]);
+  /** 构建国际化的相对时间文本 */
+  const relativeTexts = useMemo(() => ({
+    upcoming: t("jwt.relUpcoming"),
+    justPast: t("jwt.relJustPast"),
+    minutesLater: t("jwt.relMinutesLater"),
+    minutesAgo: t("jwt.relMinutesAgo"),
+    hoursLater: t("jwt.relHoursLater"),
+    hoursAgo: t("jwt.relHoursAgo"),
+    daysLater: t("jwt.relDaysLater"),
+    daysAgo: t("jwt.relDaysAgo"),
+  }), [t]);
 
-  const handleCopy = async (text: string) => {
+  /** 解码 JWT，传入国际化的错误消息 */
+  const result: JwtResult = useMemo(
+    () => decodeJwt(token, t("jwt.formatError"), t("jwt.parseErrorPrefix")),
+    [token, t]
+  );
+
+  const handleCopy = useCallback(async (text: string) => {
     if (!text) return;
     await copyToClipboard(text);
-  };
+  }, []);
 
-  const handleClear = () => setToken("");
+  const handleClear = useCallback(() => setToken(""), []);
 
   return (
     <div className="flex flex-col h-full">
@@ -263,7 +325,7 @@ export default function JwtParserPage() {
                     copyTitle={t("jwt.copyHeader")}
                     onCopy={handleCopy}
                   >
-                    <JsonView data={result.header} theme="red" t={t} />
+                    <JsonView data={result.header} theme="red" relativeTexts={relativeTexts} t={t} />
                   </SectionCard>
                 )}
                 {result.payload && (
@@ -275,7 +337,7 @@ export default function JwtParserPage() {
                     copyTitle={t("jwt.copyPayload")}
                     onCopy={handleCopy}
                   >
-                    <JsonView data={result.payload} theme="blue" t={t} />
+                    <JsonView data={result.payload} theme="blue" relativeTexts={relativeTexts} t={t} />
                   </SectionCard>
                 )}
                 {result.signature && (
