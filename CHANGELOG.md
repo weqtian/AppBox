@@ -35,7 +35,51 @@
 
 ---
 
-## [2026-06-06] — 图片工具增强 + 系统托盘完善
+## [2026-06-06] — 设置中心 + 系统托盘完善
+
+### ✨ 设置中心页面
+
+- 新增 `src/pages/SettingsPage.tsx` 设置中心页面，采用分组卡片布局
+- **外观卡片**：主题切换（跟随系统 / 浅色 / 深色），支持手动控制明暗模式
+- **语言卡片**：界面语言选择（从侧边栏 Footer 迁移至此）
+- **关于卡片**：应用图标、名称、描述、版本号
+- 侧边栏底部语言选择器替换为齿轮图标，点击进入设置页面
+
+### ✨ 主题切换功能
+
+- 新增 `src/hooks/use-theme.ts` 主题持久化 Hook
+  - 支持 `"system"` / `"light"` / `"dark"` 三种模式
+  - 偏好持久化到 localStorage（key: `appbox-theme`）
+  - system 模式下监听系统主题变化实时同步
+- 重构 `src/main.tsx` 主题初始化：`initDarkMode()` → `initTheme()`
+  - 优先读取 localStorage 中的主题偏好
+  - React 渲染前同步应用，避免主题闪烁（FOUC）
+
+### ✨ 系统托盘：关于对话框实现
+
+- 实现系统托盘右键菜单「关于 AppBox」功能
+- 创建独立的 AboutDialog 组件，显示应用图标、名称、版本号和简介
+- 为所有 4 种语言（zh-CN / en / ja / ar）添加 `aboutDialog` 翻译
+
+### 🐛 修复 AlertDialog 缺少 Trigger 的控制台警告
+
+- **问题**：`QuitConfirmDialog` 和 `AboutDialog` 使用 `AlertDialog` 但缺少 `AlertDialogTrigger` 子元素
+- **修复**：添加视觉隐藏的 `<AlertDialogTrigger>` 以满足 Radix UI 要求
+- **影响范围**：`src/components/QuitConfirmDialog.tsx`、`src/App.tsx`
+
+### 🐛 修复 `__APP_VERSION__` 类型声明缺失
+
+- **修复**：在 `src/vite-env.d.ts` 中添加 `declare const __APP_VERSION__: string`
+
+### 🐛 修复 AboutDialog 错误复用 QuitConfirmDialog
+
+- **问题**：`AboutDialog` 复用了 `QuitConfirmDialog`，点击「关于」弹出退出确认界面
+- **修复**：创建独立的 AboutDialog 组件
+- **影响范围**：`src/App.tsx`
+
+---
+
+## [2026-06-06] — 图片工具增强
 
 ### ✨ 图片压缩：智能与手动模式
 

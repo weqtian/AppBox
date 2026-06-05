@@ -19,6 +19,7 @@ import ImageCompressorPage from "@/pages/ImageCompressorPage";
 import ImageFormatConverterPage from "@/pages/ImageFormatConverterPage";
 import JwtParserPage from "@/pages/JwtParserPage";
 import VideoFrameExtractorPage from "@/pages/VideoFrameExtractorPage";
+import SettingsPage from "@/pages/SettingsPage";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Sidebar,
@@ -33,16 +34,9 @@ import {
   SidebarInset,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, VideoIcon, BoxIcon } from "lucide-react";
+import { LinkIcon, FingerprintIcon, ImageDownIcon, ArrowRightLeftIcon, KeyRoundIcon, VideoIcon, SettingsIcon, BoxIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { I18nProvider, useTranslation, localeNames, type Locale } from "@/i18n";
+import { I18nProvider, useTranslation, type Locale } from "@/i18n";
 import { QuitConfirmDialog, type QuitChoice } from "@/components/QuitConfirmDialog";
 import {
   AlertDialog,
@@ -81,7 +75,7 @@ async function syncTrayMenu(_locale: Locale, t: (key: string) => string) {
  * 必须在 I18nProvider 内部使用（由 AppContent 包裹）。
  */
 function App() {
-  const { t, locale, setLocale, dir } = useTranslation();
+  const { t, locale, dir } = useTranslation();
   const [activeTab, setActiveTab] = useState("url");
   const [showQuitDialog, setShowQuitDialog] = useState(false);
   const [showAboutDialog, setShowAboutDialog] = useState(false);
@@ -204,20 +198,20 @@ function App() {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          {/* 语言选择器 */}
+          {/* 设置入口 */}
           <SidebarFooter className="border-t p-2">
-            <Select value={locale} onValueChange={(v) => setLocale(v as Locale)}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.entries(localeNames) as [Locale, string][]).map(([key, name]) => (
-                  <SelectItem key={key} value={key}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeTab === "settings"}
+                  onClick={() => setActiveTab("settings")}
+                  tooltip={t("sidebar.settings")}
+                >
+                  <SettingsIcon />
+                  <span>{t("sidebar.settings")}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
         {/* 内容区域 */}
@@ -229,6 +223,7 @@ function App() {
             {activeTab === "format" && <ImageFormatConverterPage />}
             {activeTab === "jwt" && <JwtParserPage />}
             {activeTab === "video" && <VideoFrameExtractorPage />}
+            {activeTab === "settings" && <SettingsPage />}
           </main>
         </SidebarInset>
       </SidebarProvider>
