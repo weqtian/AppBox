@@ -43,7 +43,7 @@ const zhCN = {
     uploadSupported: "支持 JPEG、PNG、WebP、BMP",
     settings: "压缩设置",
     clearImage: "清除图片",
-    quality: "压缩质量",
+    quality: "质量",
     highCompression: "高压缩",
     highQuality: "高质量",
     outputFormat: "输出格式",
@@ -55,6 +55,8 @@ const zhCN = {
     increased: "增大",
     save: "保存",
     clickToCompress: '点击"压缩"按钮查看结果',
+    smartMode: "智能",
+    manualMode: "手动",
   },
   imageFormatConverter: {
     uploadHint: "点击上传或拖拽图片到此处",

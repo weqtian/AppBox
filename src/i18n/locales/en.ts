@@ -45,7 +45,7 @@ const en: Translations = {
     uploadSupported: "Supports JPEG, PNG, WebP, BMP",
     settings: "Compression Settings",
     clearImage: "Clear Image",
-    quality: "Compression Quality",
+    quality: "Quality",
     highCompression: "High Compression",
     highQuality: "High Quality",
     outputFormat: "Output Format",
@@ -57,6 +57,8 @@ const en: Translations = {
     increased: "Increased",
     save: "Save",
     clickToCompress: 'Click "Compress" to see result',
+    smartMode: "Smart",
+    manualMode: "Manual",
   },
   imageFormatConverter: {
     uploadHint: "Click to upload or drag images here",

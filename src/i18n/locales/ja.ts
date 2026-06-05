@@ -45,7 +45,7 @@ const ja: Translations = {
     uploadSupported: "JPEG、PNG、WebP、BMP に対応",
     settings: "圧縮設定",
     clearImage: "画像をクリア",
-    quality: "圧縮品質",
+    quality: "品質",
     highCompression: "高圧縮",
     highQuality: "高品質",
     outputFormat: "出力フォーマット",
@@ -57,6 +57,8 @@ const ja: Translations = {
     increased: "増加",
     save: "保存",
     clickToCompress: "「圧縮」ボタンをクリックして結果を表示",
+    smartMode: "スマート",
+    manualMode: "マニュアル",
   },
   imageFormatConverter: {
     uploadHint: "クリックしてアップロード、または画像をここにドラッグ",

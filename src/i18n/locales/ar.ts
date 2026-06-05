@@ -45,7 +45,7 @@ const ar: Translations = {
     uploadSupported: "يدعم JPEG، PNG، WebP، BMP",
     settings: "إعدادات الضغط",
     clearImage: "مسح الصورة",
-    quality: "جودة الضغط",
+    quality: "الجودة",
     highCompression: "ضغط عالٍ",
     highQuality: "جودة عالية",
     outputFormat: "صيغة الإخراج",
@@ -57,6 +57,8 @@ const ar: Translations = {
     increased: "زاد الحجم",
     save: "حفظ",
     clickToCompress: 'انقر على "ضغط" لعرض النتيجة',
+    smartMode: "ذكي",
+    manualMode: "يدوي",
   },
   imageFormatConverter: {
     uploadHint: "انقر للتحميل أو اسحب الصور هنا",
