@@ -35,6 +35,39 @@
 
 ---
 
+## [2026-06-06] — 应用自动更新
+
+### ✨ 应用自动更新功能
+
+- 新增应用内自动更新检查与安装功能，用户无需手动下载新版本
+- **Rust 后端**：
+  - 集成 `tauri-plugin-updater` + `tauri-plugin-process` 插件
+  - 实现 `check_for_update` 命令：检查更新并返回版本号、更新说明、发布日期
+  - 实现 `perform_update` 命令：下载并安装更新，通过 Tauri 事件推送下载进度
+  - 支持 GitHub 镜像加速（`build_endpoint` 动态构建更新端点 URL）
+- **前端界面**：
+  - 在 `SettingsPage.tsx` 设置中心新增 `UpdateSection` 更新组件
+  - 启动时 3 秒后自动静默检查更新（失败不提示）
+  - 支持 5 种下载镜像：直连（GitHub）、gh-proxy.org、v4/v6/cdn.gh-proxy.org
+  - 实时下载进度条显示（百分比）
+  - 下载完成后自动重启应用
+  - 镜像选择持久化到 `localStorage`
+- **签名与安全**：
+  - 更新包使用 minisign 签名（`TAURI_SIGNING_PRIVATE_KEY`）
+  - 客户端内嵌公钥验证更新完整性，防止篡改
+  - GitHub Actions CI 自动签名发布产物
+- 为所有 4 种语言添加 `update.*` 翻译 key
+- 添加 `updater:default` + `process:default` 权限声明
+
+> 相关提交：`8c54aee`、`f76f67b`
+
+### 🏗️ CI/CD 签名配置
+
+- GitHub Actions 工作流（`build.yml` / `release.yml`）添加 `TAURI_SIGNING_PRIVATE_KEY` 和 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 环境变量
+- `tauri.conf.json` 配置 `createUpdaterArtifacts: true`，构建时自动生成签名更新产物
+
+---
+
 ## [2026-06-06] — Base64 编解码 + 时间戳转换
 
 ### ✨ 新增 Base64 编解码工具
@@ -274,11 +307,6 @@
 
 以下为计划中的功能（按优先级排列）：
 
-- [ ] 深色/浅色主题手动切换（当前仅跟随系统）
 - [ ] 更多图片处理工具（裁剪、旋转、水印等）
-- [ ] JSON 格式化/美化工具
-- [ ] Base64 编解码工具
 - [ ] 正则表达式测试工具
-- [ ] 时间戳转换工具
 - [ ] 颜色选择器 / 格式转换
-- [ ] 应用自动更新机制

@@ -15,6 +15,7 @@
 - [组件开发规范](#组件开发规范)
 - [国际化（i18n）规范](#国际化i18n规范)
 - [Tauri 交互规范](#tauri-交互规范)
+  - [应用更新签名配置](#应用更新签名配置)
 - [Git 提交规范](#git-提交规范)
 - [分支管理](#分支管理)
 - [错误处理规范](#错误处理规范)
@@ -34,7 +35,7 @@
 | Tauri 2 | 桌面引擎 | Rust 后端，前端通过插件 API 交互 |
 | Tailwind CSS 4 | 样式方案 | 使用原子化 CSS，避免自定义 CSS |
 | shadcn/ui | UI 组件库 | radix-nova 风格，组件位于 `src/components/ui/` |
-| Bun | 包管理器 | 禁止使用 npm 或 yarn |
+| Bun / pnpm / npm | 包管理器 | 推荐使用 Bun，pnpm 和 npm 亦可 |
 
 ---
 
@@ -284,6 +285,66 @@ export async function copyToClipboard(text: string): Promise<void> {
 - `main.rs` 仅作为入口，调用 `lib::run()`
 - 使用 `#[tauri::command]` 定义可从前端调用的命令
 - 避免在 Rust 端 `unwrap()`，使用模式匹配安全处理
+
+### 应用更新签名配置
+
+项目使用 Tauri 的 minisign 签名机制保障自动更新的安全性。CI 构建时需要签名私钥来对更新包签名，客户端通过内嵌的公钥验证签名。
+
+#### 首次配置（新仓库 / 新开发者）
+
+**1. 生成签名密钥对：**
+
+```bash
+# 在项目根目录执行，密钥保存到 ~/.tauri/appbox.key
+pnpm tauri signer generate -w ~/.tauri/appbox.key
+```
+
+执行后会提示输入密码，然后输出：
+
+```
+Private key:  dW50cnVzdGVkIGNvbW1lbnQ6IG...（很长的 base64 字符串）
+Public key:   dW50cnVzdGVkIGNvbW1lbnQ6IG...（另一个 base64 字符串）
+```
+
+- **私钥**：同时保存在终端输出和 `~/.tauri/appbox.key` 文件中
+- **公钥**：仅显示在终端输出中
+- **密码**：请妥善保管，丢失后无法恢复
+
+> ⚠️ **重新生成密钥会导致旧版本无法验证新更新**。如果密钥对已经存在，请复用现有密钥，不要重新生成。
+
+**2. 配置公钥到项目：**
+
+将公钥字符串填入 `src-tauri/tauri.conf.json` 的 `plugins.updater.pubkey` 字段：
+
+```json
+{
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6I..."
+    }
+  }
+}
+```
+
+**3. 配置 GitHub Secrets：**
+
+进入 GitHub 仓库 → **Settings → Secrets and variables → Actions**，添加以下两个 Secret：
+
+| Secret 名称 | 值 | 说明 |
+|---|---|---|
+| `TAURI_SIGNING_PRIVATE_KEY` | 生成的私钥字符串 | CI 构建时用于签名更新包 |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | 生成时设置的密码 | 用于解密私钥 |
+
+> 这些 Secret 即使在公开仓库中也是安全的，只有仓库管理员可以设置和查看名称，值不可读取。
+
+#### 相关配置文件
+
+| 文件 | 作用 |
+|---|---|
+| `src-tauri/tauri.conf.json` → `bundle.createUpdaterArtifacts` | 构建时生成签名更新产物 |
+| `src-tauri/tauri.conf.json` → `plugins.updater.pubkey` | 客户端验证签名用的公钥 |
+| `.github/workflows/release.yml` → `TAURI_SIGNING_PRIVATE_KEY` | CI 发布时签名 |
+| `.github/workflows/build.yml` → `TAURI_SIGNING_PRIVATE_KEY` | CI 构建时签名 |
 
 ---
 
