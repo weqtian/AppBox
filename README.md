@@ -17,6 +17,8 @@
 
 ### 通用特性
 
+- **应用自动更新**：检查并安装新版本，支持 GitHub 镜像加速下载，实时显示下载进度
+- **设置中心**：统一管理主题切换、语言选择和应用更新
 - **深色模式**：自动检测系统主题偏好，支持手动切换（浅色/深色/跟随系统）
 - **国际化（i18n）**：支持中文、英语、日语、阿拉伯语，阿拉伯语自动 RTL 布局
 - **剪贴板集成**：通过 Tauri 插件直接读写系统剪贴板
@@ -34,7 +36,7 @@
 | 类型系统 | TypeScript | 5.8 |
 | 构建工具 | Vite | 7.0 |
 | 桌面引擎 | Tauri | 2.x |
-| 包管理器 | Bun | - |
+| 包管理器 | Bun / pnpm / npm | - |
 | UI 组件库 | shadcn/ui (radix-nova) | 4.8 |
 | CSS 方案 | Tailwind CSS | 4.3 |
 | 图标库 | Lucide React | 1.16 |
@@ -48,9 +50,11 @@ AppBox/
 ├── src/                     # 前端源码
 │   ├── components/          # 组件目录
 │   │   ├── ui/              # shadcn/ui 基础组件（自动生成）
-│   │   └── QuitConfirmDialog.tsx  # 退出确认对话框
+│   │   ├── QuitConfirmDialog.tsx  # 退出确认对话框
+│   │   └── AboutDialog.tsx       # 关于对话框
 │   ├── hooks/               # 自定义 Hooks
-│   │   └── use-mobile.ts    # 移动端检测
+│   │   ├── use-mobile.ts    # 移动端检测
+│   │   └── use-theme.ts     # 主题持久化（system/light/dark）
 │   ├── i18n/                # 国际化
 │   │   ├── index.tsx        # I18nProvider 与 useTranslation
 │   │   └── locales/         # 语言文件（zh-CN/en/ja/ar）
@@ -67,7 +71,11 @@ AppBox/
 │   │   ├── JwtParserPage.tsx           # JWT 解析
 │   │   ├── ImageCompressorPage.tsx     # 图片压缩
 │   │   ├── ImageFormatConverterPage.tsx # 图片格式转换
-│   │   └── VideoFrameExtractorPage.tsx # 视频截帧
+│   │   ├── VideoFrameExtractorPage.tsx # 视频截帧
+│   │   ├── JsonFormatterPage.tsx       # JSON 格式化
+│   │   ├── Base64CoderPage.tsx         # Base64 编解码
+│   │   ├── TimestampPage.tsx           # 时间戳转换
+│   │   └── SettingsPage.tsx            # 设置中心（主题/语言/更新）
 │   ├── App.tsx              # 主应用组件（侧边栏导航+页面路由）
 │   ├── App.css              # 全局样式与 Tailwind 配置
 │   ├── main.tsx             # React 入口文件
@@ -161,14 +169,16 @@ npx tsc --noEmit
 
 ### 后端（Rust + Tauri）
 
-- `src-tauri/src/lib.rs` 注册 Tauri 插件、创建系统托盘、设置窗口关闭拦截
+- `src-tauri/src/lib.rs` 注册 Tauri 插件、创建系统托盘、设置窗口关闭拦截、实现更新命令
 - `src-tauri/src/main.rs` 为 Rust 入口，调用 `appbox_lib::run()`
 - 已集成插件：
   - `tauri-plugin-opener` — 打开链接/文件
   - `tauri-plugin-clipboard-manager` — 剪贴板读写
   - `tauri-plugin-dialog` — 原生文件对话框
   - `tauri-plugin-fs` — 文件系统写入
-- Rust 依赖：`tauri`、`serde`、`serde_json`
+  - `tauri-plugin-updater` — 应用自动更新（签名验证 + 镜像加速）
+  - `tauri-plugin-process` — 应用重启（更新完成后自动重启）
+- Rust 依赖：`tauri`、`serde`、`serde_json`、`url`
 - 安全处理：使用模式匹配替代 `unwrap()`，避免运行时 panic
 
 ### 前后端交互
@@ -212,6 +222,8 @@ await invoke("execute_quit_choice", { choice: "minimize" });
   - `clipboard-manager:allow-write-text` / `allow-read-text` — 剪贴板读写
   - `dialog:allow-save` / `allow-open` — 文件对话框
   - `fs:allow-write-file` / `allow-write` — 文件写入
+  - `updater:default` — 自动更新权限
+  - `process:default` — 进程管理（重启）权限
 - CSP 安全策略：当前为 `null`（开发阶段，生产构建时建议配置）
 
 ## 关键配置

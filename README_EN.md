@@ -17,6 +17,8 @@ A cross-platform desktop toolbox built with **Tauri 2 + React 19 + TypeScript + 
 
 ### General Features
 
+- **Auto Update**: Check and install new versions with GitHub mirror acceleration, real-time download progress
+- **Settings Center**: Manage theme switching, language selection, and app updates in one place
 - **Dark Mode**: Automatic system theme detection with light/dark switching
 - **Internationalization (i18n)**: Supports Chinese, English, Japanese, and Arabic with automatic RTL layout for Arabic
 - **Clipboard Integration**: Read/write system clipboard via Tauri plugins
@@ -34,7 +36,7 @@ A cross-platform desktop toolbox built with **Tauri 2 + React 19 + TypeScript + 
 | Type System | TypeScript | 5.8 |
 | Build Tool | Vite | 7.0 |
 | Desktop Engine | Tauri | 2.x |
-| Package Manager | Bun | - |
+| Package Manager | Bun / pnpm / npm | - |
 | UI Components | shadcn/ui (radix-nova) | 4.8 |
 | CSS Solution | Tailwind CSS | 4.3 |
 | Icon Library | Lucide React | 1.16 |
@@ -48,9 +50,11 @@ AppBox/
 ├── src/                     # Frontend source code
 │   ├── components/          # Components directory
 │   │   ├── ui/              # shadcn/ui base components (auto-generated)
-│   │   └── QuitConfirmDialog.tsx  # Exit confirmation dialog
+│   │   ├── QuitConfirmDialog.tsx  # Exit confirmation dialog
+│   │   └── AboutDialog.tsx       # About dialog
 │   ├── hooks/               # Custom Hooks
-│   │   └── use-mobile.ts    # Mobile detection
+│   │   ├── use-mobile.ts    # Mobile detection
+│   │   └── use-theme.ts     # Theme persistence (system/light/dark)
 │   ├── i18n/                # Internationalization
 │   │   ├── index.tsx        # I18nProvider and useTranslation
 │   │   └── locales/         # Language files (zh-CN/en/ja/ar)
@@ -67,7 +71,11 @@ AppBox/
 │   │   ├── JwtParserPage.tsx           # JWT parser
 │   │   ├── ImageCompressorPage.tsx     # Image compressor
 │   │   ├── ImageFormatConverterPage.tsx # Image format converter
-│   │   └── VideoFrameExtractorPage.tsx # Video frame extractor
+│   │   ├── VideoFrameExtractorPage.tsx # Video frame extractor
+│   │   ├── JsonFormatterPage.tsx       # JSON formatter
+│   │   ├── Base64CoderPage.tsx         # Base64 encoder/decoder
+│   │   ├── TimestampPage.tsx           # Timestamp converter
+│   │   └── SettingsPage.tsx            # Settings (theme/language/updates)
 │   ├── App.tsx              # Main app component (sidebar navigation + page routing)
 │   ├── App.css              # Global styles and Tailwind config
 │   ├── main.tsx             # React entry file
@@ -160,14 +168,16 @@ npx tsc --noEmit
 
 ### Backend (Rust + Tauri)
 
-- `src-tauri/src/lib.rs` registers Tauri plugins, creates system tray, and intercepts window close
+- `src-tauri/src/lib.rs` registers Tauri plugins, creates system tray, intercepts window close, implements update commands
 - `src-tauri/src/main.rs` is the Rust entry point, calls `appbox_lib::run()`
 - Integrated plugins:
   - `tauri-plugin-opener` — Open links/files
   - `tauri-plugin-clipboard-manager` — Clipboard read/write
   - `tauri-plugin-dialog` — Native file dialogs
   - `tauri-plugin-fs` — File system write
-- Rust dependencies: `tauri`, `serde`, `serde_json`
+  - `tauri-plugin-updater` — Auto update (signature verification + mirror acceleration)
+  - `tauri-plugin-process` — App restart (auto-restart after update)
+- Rust dependencies: `tauri`, `serde`, `serde_json`, `url`
 - Safe handling: uses pattern matching instead of `unwrap()` to avoid runtime panics
 
 ### Frontend-Backend Interaction
@@ -211,6 +221,8 @@ All system interactions provide browser fallbacks to ensure the app works in a p
   - `clipboard-manager:allow-write-text` / `allow-read-text` — Clipboard read/write
   - `dialog:allow-save` / `allow-open` — File dialogs
   - `fs:allow-write-file` / `allow-write` — File writing
+  - `updater:default` — Auto update permissions
+  - `process:default` — Process management (restart) permissions
 - CSP security policy: currently `null` (development stage; recommended to configure for production builds)
 
 ## Key Configuration
